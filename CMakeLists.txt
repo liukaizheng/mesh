@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.20)
 
 project(mesh1_cpp LANGUAGES CXX)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS on)
+
 add_library(mesh1 INTERFACE)
 target_include_directories(mesh1 INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_compile_features(mesh1 INTERFACE cxx_std_23)

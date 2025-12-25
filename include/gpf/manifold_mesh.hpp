@@ -8,11 +8,11 @@
 #include <utility>
 #include <vector>
 
-#include "mesh1/detail.hpp"
-#include "mesh1/handles.hpp"
-#include "mesh1/ids.hpp"
+#include "gpf/detail.hpp"
+#include "gpf/handles.hpp"
+#include "gpf/ids.hpp"
 
-namespace mesh1 {
+namespace gpf {
 
 template <class VertexProp, class HalfedgeProp, class EdgeProp, class FaceProp>
 class ManifoldMesh {
@@ -659,4 +659,4 @@ class ManifoldMesh {
   }
 };
 
-}  // namespace mesh1
+}  // namespace gpf

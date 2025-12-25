@@ -8,9 +8,9 @@
 #include <ranges>
 #include <type_traits>
 
-#include "mesh1/ids.hpp"
+#include "gpf/ids.hpp"
 
-namespace mesh1 {
+namespace gpf {
 
 template <class Mesh, bool Const>
 using mesh_ptr_t = std::conditional_t<Const, const Mesh*, Mesh*>;
@@ -502,4 +502,4 @@ std::array<VertexHandle<Mesh, Const>, 2> EdgeHandle<Mesh, Const>::vertices() con
   return {prev.to(), he.to()};
 }
 
-}  // namespace mesh1
+}  // namespace gpf

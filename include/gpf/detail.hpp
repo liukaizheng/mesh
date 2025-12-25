@@ -4,9 +4,9 @@
 #include <type_traits>
 #include <utility>
 
-#include "mesh1/ids.hpp"
+#include "gpf/ids.hpp"
 
-namespace mesh1::detail {
+namespace gpf::detail {
 
 [[nodiscard]] constexpr std::pair<VertexId, VertexId> ordered_pair(VertexId a, VertexId b) {
   if (a.idx < b.idx) {
@@ -77,4 +77,4 @@ double& edge_length_mut(P& p) {
   }
 }
 
-}  // namespace mesh1::detail
+}  // namespace gpf::detail

@@ -2,8 +2,10 @@
 #include <cstddef>
 #include <unordered_set>
 #include <vector>
+#include <ranges>
 
-#include "mesh1/surface_mesh.hpp"
+#include "gpf/ids.hpp"
+#include "gpf/surface_mesh.hpp"
 
 namespace {
 
@@ -24,7 +26,7 @@ std::size_t count_range(Range&& range) {
 }  // namespace
 
 void test_surface_mesh_basic() {
-  using Mesh = mesh1::SurfaceMesh<Empty, Empty, Empty, Empty>;
+  using Mesh = gpf::SurfaceMesh<Empty, Empty, Empty, Empty>;
 
   Mesh mesh = Mesh::new_in(std::vector<std::vector<std::size_t>>{
       {0, 1, 2},
@@ -37,42 +39,45 @@ void test_surface_mesh_basic() {
 
   assert(mesh.n_vertices() == 7);
 
-  const auto incoming_0 = count_range(mesh.vertex(mesh1::VertexId{0}).incoming_halfedges());
+  const auto incoming_0 = count_range(mesh.vertex(gpf::VertexId{0}).incoming_halfedges());
+  const auto incomming_halfedges = mesh.vertex(gpf::VertexId{0}).incoming_halfedges() |
+                                   std::views::transform([](const auto& h) { return h.id; }) |
+                                   std::ranges::to<std::vector>();
   assert(incoming_0 == 6);
 
-  const auto outgoing_0 = count_range(mesh.vertex(mesh1::VertexId{0}).outgoing_halfedges());
+  const auto outgoing_0 = count_range(mesh.vertex(gpf::VertexId{0}).outgoing_halfedges());
   assert(outgoing_0 == 6);
 
-  const auto edges_0 = count_range(mesh.vertex(mesh1::VertexId{0}).edges());
+  const auto edges_0 = count_range(mesh.vertex(gpf::VertexId{0}).edges());
   assert(edges_0 == 6);
 
-  const auto verts_0 = count_range(mesh.vertex(mesh1::VertexId{0}).vertices());
+  const auto verts_0 = count_range(mesh.vertex(gpf::VertexId{0}).vertices());
   assert(verts_0 == 6);
 
-  const auto incoming_6 = count_range(mesh.vertex(mesh1::VertexId{6}).incoming_halfedges());
+  const auto incoming_6 = count_range(mesh.vertex(gpf::VertexId{6}).incoming_halfedges());
   assert(incoming_6 == 2);
 
-  const auto outgoing_6 = count_range(mesh.vertex(mesh1::VertexId{6}).outgoing_halfedges());
+  const auto outgoing_6 = count_range(mesh.vertex(gpf::VertexId{6}).outgoing_halfedges());
   assert(outgoing_6 == 2);
 
-  const auto edges_6 = count_range(mesh.vertex(mesh1::VertexId{6}).edges());
+  const auto edges_6 = count_range(mesh.vertex(gpf::VertexId{6}).edges());
   assert(edges_6 == 3);
 
-  const auto verts_6 = count_range(mesh.vertex(mesh1::VertexId{6}).vertices());
+  const auto verts_6 = count_range(mesh.vertex(gpf::VertexId{6}).vertices());
   assert(verts_6 == 3);
 
-  const auto edge_halfedges = count_range(mesh.edge(mesh1::EdgeId{0}).halfedges());
+  const auto edge_halfedges = count_range(mesh.edge(gpf::EdgeId{0}).halfedges());
   assert(edge_halfedges == 2);
 
-  const auto face_halfedges = count_range(mesh.face(mesh1::FaceId{0}).halfedges());
+  const auto face_halfedges = count_range(mesh.face(gpf::FaceId{0}).halfedges());
   assert(face_halfedges == 3);
 
-  const auto face_halfedges_rev = count_range(mesh.face(mesh1::FaceId{0}).halfedges_reverse());
+  const auto face_halfedges_rev = count_range(mesh.face(gpf::FaceId{0}).halfedges_reverse());
   assert(face_halfedges_rev == 3);
 }
 
 void test_surface_mesh_split_edge_and_split_face() {
-  using Mesh = mesh1::SurfaceMesh<Empty, Empty, Empty, Empty>;
+  using Mesh = gpf::SurfaceMesh<Empty, Empty, Empty, Empty>;
 
   Mesh mesh = Mesh::new_in(std::vector<std::vector<std::size_t>>{
       {0, 1, 2},
@@ -82,7 +87,7 @@ void test_surface_mesh_split_edge_and_split_face() {
       {1, 0, 6},
   });
 
-  const auto eid = mesh.e_from_vertices(mesh1::VertexId{0}, mesh1::VertexId{1});
+  const auto eid = mesh.e_from_vertices(gpf::VertexId{0}, gpf::VertexId{1});
   assert(eid.valid());
 
   const std::size_t edge_n_halfedges = count_range(mesh.edge(eid).halfedges());
@@ -92,7 +97,7 @@ void test_surface_mesh_split_edge_and_split_face() {
   assert(new_vid.valid());
 
   for (auto f : mesh.faces()) {
-    std::vector<mesh1::HalfedgeId> hs;
+    std::vector<gpf::HalfedgeId> hs;
     for (auto he : f.halfedges()) {
       hs.push_back(he.id);
     }
@@ -105,7 +110,7 @@ void test_surface_mesh_split_edge_and_split_face() {
       assert(mesh.halfedge_data(h2).prev == h1);
     }
 
-    std::unordered_set<mesh1::VertexId> vset;
+    std::unordered_set<gpf::VertexId> vset;
     for (const auto hid : hs) {
       const auto& he = mesh.halfedge_data(hid);
       assert(he.face == f.id);
@@ -115,7 +120,7 @@ void test_surface_mesh_split_edge_and_split_face() {
   }
 
   {
-    std::vector<mesh1::HalfedgeId> halfedges;
+    std::vector<gpf::HalfedgeId> halfedges;
     for (auto he : mesh.edge(eid).halfedges()) {
       halfedges.push_back(he.id);
     }
@@ -128,7 +133,7 @@ void test_surface_mesh_split_edge_and_split_face() {
   const auto new_eid = mesh.vertex(new_vid).halfedge().prev().edge().id;
   assert(new_eid.valid());
   {
-    std::vector<mesh1::HalfedgeId> halfedges;
+    std::vector<gpf::HalfedgeId> halfedges;
     for (auto he : mesh.edge(new_eid).halfedges()) {
       halfedges.push_back(he.id);
     }
@@ -139,16 +144,16 @@ void test_surface_mesh_split_edge_and_split_face() {
   }
 
   {
-    const mesh1::FaceId fid{0};
-    const auto new_hid = mesh.split_face(fid, new_vid, mesh1::VertexId{2});
+    const gpf::FaceId fid{0};
+    const auto new_hid = mesh.split_face(fid, new_vid, gpf::VertexId{2});
     const auto new_fid = mesh.he_face(new_hid);
     assert(new_fid.valid());
 
-    std::vector<mesh1::HalfedgeId> old_halfedges;
+    std::vector<gpf::HalfedgeId> old_halfedges;
     for (auto he : mesh.face(fid).halfedges()) {
       old_halfedges.push_back(he.id);
     }
-    std::vector<mesh1::HalfedgeId> new_halfedges;
+    std::vector<gpf::HalfedgeId> new_halfedges;
     for (auto he : mesh.face(new_fid).halfedges()) {
       new_halfedges.push_back(he.id);
     }
@@ -173,4 +178,3 @@ void test_surface_mesh_split_edge_and_split_face() {
     }
   }
 }
-

@@ -3,7 +3,7 @@
 #include <ranges>
 #include <vector>
 
-#include "mesh1/manifold_mesh.hpp"
+#include "gpf/manifold_mesh.hpp"
 
 namespace {
 
@@ -24,7 +24,7 @@ std::size_t count_range(Range&& range) {
 }  // namespace
 
 void test_manifold_mesh_single_triangle_boundary_loop() {
-  using Mesh = mesh1::ManifoldMesh<Empty, Empty, Empty, Empty>;
+  using Mesh = gpf::ManifoldMesh<Empty, Empty, Empty, Empty>;
 
   const Mesh mesh = Mesh::new_in(std::vector<std::vector<std::size_t>>{{0, 1, 2}});
 
@@ -33,9 +33,9 @@ void test_manifold_mesh_single_triangle_boundary_loop() {
   assert(mesh.n_edges() == 3);
   assert(mesh.n_halfedges() == 6);
 
-  assert(count_range(mesh.face(mesh1::FaceId{0}).halfedges()) == 3);
+  assert(count_range(mesh.face(gpf::FaceId{0}).halfedges()) == 3);
 
-  std::vector<mesh1::HalfedgeId> boundary_halfedges;
+  std::vector<gpf::HalfedgeId> boundary_halfedges;
   for (const auto he : mesh.halfedges()) {
     if (!mesh.he_face(he.id).valid()) {
       boundary_halfedges.push_back(he.id);
@@ -58,16 +58,16 @@ void test_manifold_mesh_single_triangle_boundary_loop() {
     assert(count == 3);
   }
 
-  for (const mesh1::VertexId vid : {mesh1::VertexId{0}, mesh1::VertexId{1}, mesh1::VertexId{2}}) {
+  for (const gpf::VertexId vid : {gpf::VertexId{0}, gpf::VertexId{1}, gpf::VertexId{2}}) {
     assert(count_range(mesh.vertex(vid).incoming_halfedges()) == 2);
     assert(count_range(mesh.vertex(vid).outgoing_halfedges()) == 2);
   }
 
-  assert(count_range(mesh.edge(mesh1::EdgeId{0}).halfedges()) == 2);
+  assert(count_range(mesh.edge(gpf::EdgeId{0}).halfedges()) == 2);
 }
 
 void test_manifold_mesh_tetrahedron_closed() {
-  using Mesh = mesh1::ManifoldMesh<Empty, Empty, Empty, Empty>;
+  using Mesh = gpf::ManifoldMesh<Empty, Empty, Empty, Empty>;
 
   const Mesh mesh = Mesh::new_in(std::vector<std::vector<std::size_t>>{
       {0, 1, 2},
@@ -86,6 +86,6 @@ void test_manifold_mesh_tetrahedron_closed() {
          })) == 0);
 
   for (std::size_t eid = 0; eid < mesh.n_edges_capacity(); ++eid) {
-    assert(count_range(mesh.edge(mesh1::EdgeId{eid}).halfedges()) == 2);
+    assert(count_range(mesh.edge(gpf::EdgeId{eid}).halfedges()) == 2);
   }
 }

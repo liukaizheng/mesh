@@ -6,9 +6,9 @@
 #include <span>
 #include <type_traits>
 
-#include "mesh1/detail.hpp"
+#include "gpf/detail.hpp"
 
-namespace mesh1 {
+namespace gpf {
 
 template <std::size_t N>
 [[nodiscard]] std::span<const double, N> position_span(const std::array<double, N>& p) {
@@ -69,5 +69,4 @@ void update_edge_lengths_in_edge_data(Mesh& mesh) {
   }
 }
 
-}  // namespace mesh1
-
+}  // namespace gpf

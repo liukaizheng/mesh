@@ -4,8 +4,8 @@
 #include <cstddef>
 #include <vector>
 
-#include "mesh1/property.hpp"
-#include "mesh1/surface_mesh.hpp"
+#include "gpf/property.hpp"
+#include "gpf/surface_mesh.hpp"
 
 namespace {
 
@@ -21,7 +21,7 @@ struct EdgeProp {
 }  // namespace
 
 void test_property_edge_length_updates() {
-  using Mesh = mesh1::SurfaceMesh<std::array<double, 3>, Empty, EdgeProp, Empty>;
+  using Mesh = gpf::SurfaceMesh<std::array<double, 3>, Empty, EdgeProp, Empty>;
 
   Mesh mesh = Mesh::new_in(std::vector<std::vector<std::size_t>>{{0, 1, 2}});
 
@@ -38,8 +38,8 @@ void test_property_edge_length_updates() {
     }
   }
 
-  mesh1::update_edge_lengths_squared_in_edge_data<3>(mesh);
-  mesh1::update_edge_lengths_in_edge_data<3>(mesh);
+  gpf::update_edge_lengths_squared_in_edge_data<3>(mesh);
+  gpf::update_edge_lengths_in_edge_data<3>(mesh);
 
   for (auto e : mesh.edges()) {
     const auto [va, vb] = e.vertices();

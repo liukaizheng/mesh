@@ -5,7 +5,7 @@
 #include <functional>
 #include <limits>
 
-namespace mesh1 {
+namespace gpf {
 
 inline constexpr std::size_t kInvalidIndex = std::numeric_limits<std::size_t>::max();
 
@@ -53,28 +53,28 @@ struct EdgeId {
   return HalfedgeId{id.idx ^ mask};
 }
 
-}  // namespace mesh1
+}  // namespace gpf
 
 namespace std {
 
 template <>
-struct hash<mesh1::VertexId> {
-  std::size_t operator()(const mesh1::VertexId id) const noexcept { return id.idx; }
+struct hash<gpf::VertexId> {
+  std::size_t operator()(const gpf::VertexId id) const noexcept { return id.idx; }
 };
 
 template <>
-struct hash<mesh1::HalfedgeId> {
-  std::size_t operator()(const mesh1::HalfedgeId id) const noexcept { return id.idx; }
+struct hash<gpf::HalfedgeId> {
+  std::size_t operator()(const gpf::HalfedgeId id) const noexcept { return id.idx; }
 };
 
 template <>
-struct hash<mesh1::FaceId> {
-  std::size_t operator()(const mesh1::FaceId id) const noexcept { return id.idx; }
+struct hash<gpf::FaceId> {
+  std::size_t operator()(const gpf::FaceId id) const noexcept { return id.idx; }
 };
 
 template <>
-struct hash<mesh1::EdgeId> {
-  std::size_t operator()(const mesh1::EdgeId id) const noexcept { return id.idx; }
+struct hash<gpf::EdgeId> {
+  std::size_t operator()(const gpf::EdgeId id) const noexcept { return id.idx; }
 };
 
 }  // namespace std
