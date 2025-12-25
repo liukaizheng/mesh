@@ -4,7 +4,6 @@
 #include <cmath>
 #include <cstddef>
 #include <span>
-#include <type_traits>
 
 #include "gpf/detail.hpp"
 

@@ -4,7 +4,6 @@
 #include <cassert>
 #include <cstddef>
 #include <iterator>
-#include <optional>
 #include <ranges>
 #include <type_traits>
 
