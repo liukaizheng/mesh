@@ -231,6 +231,38 @@ class SurfaceMesh {
     return ret;
   }
 
+  void delete_vertex(VertexId vid) {
+    auto& v_data = vertex_data(vid);
+    if (v_data.halfedge.valid()) {
+        v_data.halfedge = HalfedgeId{};
+        n_vertices_ -= 1;
+    }
+  }
+
+  void delete_halfedge(HalfedgeId hid) {
+    auto& he_data = halfedge_data(hid);
+    if (he_data.vertex.valid()) {
+        he_data.vertex = VertexId{};
+        n_halfedges_ -= 1;
+    }
+  }
+
+  void delete_edge(EdgeId eid) {
+    auto& e_data = edge_data(eid);
+    if (e_data.halfedge.valid()) {
+        e_data.halfedge = HalfedgeId{};
+        n_edges_ -= 1;
+    }
+  }
+
+  void delete_face(FaceId fid) {
+    auto& f_data = face_data(fid);
+    if (f_data.halfedge.valid()) {
+        f_data.halfedge = HalfedgeId{};
+        n_faces_ -= 1;
+    }
+  }
+
   VertexId split_edge(EdgeId eid) {
     const HalfedgeId edge_hid = e_halfedge(eid);
     const VertexId vb = he_to(edge_hid);
