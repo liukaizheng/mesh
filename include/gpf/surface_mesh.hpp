@@ -263,6 +263,20 @@ class SurfaceMesh {
     }
   }
 
+  void reassign_face_vertex_halfedge(FaceId fid) {
+    VertexId prev_vid{};
+    HalfedgeId first_hid{};
+    for (auto he : face(fid).halfedges()) {
+      if (prev_vid.valid()) {
+        vertex_data(prev_vid).halfedge = he.id;
+      } else {
+        first_hid = he.id;
+      }
+      prev_vid = he.to().id;
+    }
+    vertex_data(prev_vid).halfedge = first_hid;
+  }
+
   VertexId split_edge(EdgeId eid) {
     const HalfedgeId edge_hid = e_halfedge(eid);
     const VertexId vb = he_to(edge_hid);
