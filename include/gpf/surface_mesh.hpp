@@ -263,6 +263,22 @@ class SurfaceMesh {
     }
   }
 
+  [[nodiscard]] bool vertex_is_deleted(VertexId vid) const {
+    return !vertex_data(vid).halfedge.valid();
+  }
+
+  [[nodiscard]] bool halfedge_is_deleted(HalfedgeId hid) const {
+    return !halfedge_data(hid).vertex.valid();
+  }
+
+  [[nodiscard]] bool edge_is_deleted(EdgeId eid) const {
+    return !edge_data(eid).halfedge.valid();
+  }
+
+  [[nodiscard]] bool face_is_deleted(FaceId fid) const {
+    return !face_data(fid).halfedge.valid();
+  }
+
   void reassign_face_vertex_halfedge(FaceId fid) {
     VertexId prev_vid{};
     HalfedgeId first_hid{};
