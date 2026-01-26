@@ -90,6 +90,18 @@ class SurfaceMesh {
   [[nodiscard]] const EdgeData& edge_data(EdgeId eid) const { return edges_[eid.idx]; }
   [[nodiscard]] EdgeData& edge_data(EdgeId eid) { return edges_[eid.idx]; }
 
+  [[nodiscard]] const VertexProp& vertex_prop(VertexId vid) const { return vertex_data(vid).property; }
+  [[nodiscard]] VertexProp& vertex_prop(VertexId vid) { return vertex_data(vid).property; }
+
+  [[nodiscard]] const HalfedgeProp& halfedge_prop(HalfedgeId hid) const { return halfedge_data(hid).property; }
+  [[nodiscard]] HalfedgeProp& halfedge_prop(HalfedgeId hid) { return halfedge_data(hid).property; }
+
+  [[nodiscard]] const FaceProp& face_prop(FaceId fid) const { return face_data(fid).property; }
+  [[nodiscard]] FaceProp& face_prop(FaceId fid) { return face_data(fid).property; }
+
+  [[nodiscard]] const EdgeProp& edge_prop(EdgeId eid) const { return edge_data(eid).property; }
+  [[nodiscard]] EdgeProp& edge_prop(EdgeId eid) { return edge_data(eid).property; }
+
   [[nodiscard]] Vertex vertex(VertexId vid) { return Vertex{vid, this}; }
   [[nodiscard]] ConstVertex vertex(VertexId vid) const { return ConstVertex{vid, this}; }
   [[nodiscard]] Halfedge halfedge(HalfedgeId hid) { return Halfedge{hid, this}; }
