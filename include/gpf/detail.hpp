@@ -44,36 +44,4 @@ decltype(auto) property_ref(const EdgeData& data) {
     return (data);
   }
 }
-
-template <class T>
-constexpr bool has_member_square_len_v = requires(T t) { t.square_len; };
-
-template <class T>
-constexpr bool has_member_len_v = requires(T t) { t.len; };
-
-template <class P>
-double& edge_length_squared_mut(P& p) {
-  if constexpr (requires { p.edge_length_squared_mut(); }) {
-    return p.edge_length_squared_mut();
-  } else if constexpr (has_member_square_len_v<P>) {
-    return p.square_len;
-  } else {
-    static_assert(sizeof(P) == 0,
-                  "Edge property must provide `edge_length_squared_mut()` or a `square_len` "
-                  "member.");
-  }
-}
-
-template <class P>
-double& edge_length_mut(P& p) {
-  if constexpr (requires { p.edge_length_mut(); }) {
-    return p.edge_length_mut();
-  } else if constexpr (has_member_len_v<P>) {
-    return p.len;
-  } else {
-    static_assert(sizeof(P) == 0,
-                  "Edge property must provide `edge_length_mut()` or a `len` member.");
-  }
-}
-
 }  // namespace gpf::detail

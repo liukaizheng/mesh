@@ -1,16 +1,12 @@
 #include <cassert>
-#include <cmath>
-#include <array>
 #include <cstddef>
-#include <vector>
 
 #include "gpf/property.hpp"
-#include "gpf/surface_mesh.hpp"
+#include "gpf/mesh.hpp"
 
 namespace {
-
-struct Empty {
-  [[nodiscard]] constexpr bool operator==(const Empty&) const = default;
+struct VertexProp {
+  std::array<double, 3> pt;
 };
 
 struct EdgeProp {
@@ -21,30 +17,30 @@ struct EdgeProp {
 }  // namespace
 
 void test_property_edge_length_updates() {
-  using Mesh = gpf::SurfaceMesh<std::array<double, 3>, Empty, EdgeProp, Empty>;
+  using Mesh = gpf::SurfaceMesh<VertexProp, gpf::Empty, EdgeProp, gpf::Empty>;
 
   Mesh mesh = Mesh::new_in(std::vector<std::vector<std::size_t>>{{0, 1, 2}});
 
   for (auto v : mesh.vertices()) {
     const auto id = v.id.idx;
     if (id == 0) {
-      v.data().property = {0.0, 0.0, 0.0};
+      v.prop().pt = {0.0, 0.0, 0.0};
     } else if (id == 1) {
-      v.data().property = {1.0, 0.0, 0.0};
+      v.prop().pt = {1.0, 0.0, 0.0};
     } else if (id == 2) {
-      v.data().property = {0.0, 2.0, 0.0};
+      v.prop().pt = {0.0, 2.0, 0.0};
     } else {
       assert(false);
     }
   }
 
-  gpf::update_edge_lengths_squared_in_edge_data<3>(mesh);
-  gpf::update_edge_lengths_in_edge_data<3>(mesh);
+  gpf::update_edge_lengths_squared<3>(mesh);
+  gpf::update_edge_lengths<3>(mesh);
 
   for (auto e : mesh.edges()) {
     const auto [va, vb] = e.vertices();
-    const auto pa = va.data().property;
-    const auto pb = vb.data().property;
+    const auto pa = va.prop().pt;
+    const auto pb = vb.prop().pt;
 
     const double dx = pa[0] - pb[0];
     const double dy = pa[1] - pb[1];
