@@ -44,7 +44,7 @@ class VertexHandle {
   VertexHandle(VertexId id_, mesh_ptr mesh_) : id(id_), mesh(mesh_) {}
 
   [[nodiscard]] data_ref data() const { return mesh->vertex_data(id); }
-  [[nodiscard]] auto& prop() const { return this->data().property; }
+  [[nodiscard]] decltype(auto) prop() const { return this->data().property; }
 
   [[nodiscard]] HalfedgeHandle<Mesh, Const> halfedge() const;
   [[nodiscard]] auto incoming_halfedges() const
@@ -68,7 +68,7 @@ class FaceHandle {
   FaceHandle(FaceId id_, mesh_ptr mesh_) : id(id_), mesh(mesh_) {}
 
   [[nodiscard]] data_ref data() const { return mesh->face_data(id); }
-  [[nodiscard]] auto& prop() const { return this->data().property; }
+  [[nodiscard]] decltype(auto) prop() const { return this->data().property; }
 
   [[nodiscard]] HalfedgeHandle<Mesh, Const> halfedge() const;
 
@@ -90,7 +90,7 @@ class HalfedgeHandle {
   HalfedgeHandle(HalfedgeId id_, mesh_ptr mesh_) : id(id_), mesh(mesh_) {}
 
   [[nodiscard]] data_ref data() const { return mesh->halfedge_data(id); }
-  [[nodiscard]] auto& prop() const { return this->data().property; }
+  [[nodiscard]] decltype(auto) prop() const { return this->data().property; }
 
   [[nodiscard]] VertexHandle<Mesh, Const> from() const;
   [[nodiscard]] VertexHandle<Mesh, Const> to() const;
@@ -117,6 +117,7 @@ class EdgeHandle {
   EdgeHandle(EdgeId id_, mesh_ptr mesh_) : id(id_), mesh(mesh_) {}
 
   [[nodiscard]] data_ref data() const { return mesh->edge_data(id); }
+  [[nodiscard]] decltype(auto) prop() const { return mesh->edge_prop(id); }
 
   [[nodiscard]] HalfedgeHandle<Mesh, Const> halfedge() const;
   [[nodiscard]] auto halfedges() const -> HalfedgeCycleRange<Mesh, Const, &Mesh::he_sibling>;

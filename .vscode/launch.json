@@ -5,7 +5,7 @@
             "name": "Debug relief_app",
             "type": "lldb",
             "request": "launch",
-            "program": "${workspaceFolder}/build/mesh1_tests",
+            "program": "${workspaceFolder}/build/gpf_mesh_tests",
             "args": [],
             "cwd": "${workspaceFolder}/build",
             "env": {},

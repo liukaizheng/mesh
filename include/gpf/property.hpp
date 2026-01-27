@@ -30,8 +30,7 @@ void update_edge_lengths_squared(Mesh& mesh) {
     const auto [va, vb] = e.vertices();
     const auto pa = position_span<N>(va.prop().pt);
     const auto pb = position_span<N>(vb.prop().pt);
-    auto& prop = detail::property_ref(e.data());
-    prop.square_len = squared_distance(pa, pb);
+    e.prop().square_len = squared_distance(pa, pb);
   }
 }
 
@@ -41,8 +40,7 @@ void update_edge_lengths(Mesh& mesh) {
     const auto [va, vb] = e.vertices();
     const auto pa = position_span<N>(va.prop().pt);
     const auto pb = position_span<N>(vb.prop().pt);
-    auto& prop = detail::property_ref(e.data());
-    prop.len = std::sqrt(squared_distance<N>(pa, pb));
+    e.prop().len = std::sqrt(squared_distance<N>(pa, pb));
   }
 }
 }  // namespace gpf

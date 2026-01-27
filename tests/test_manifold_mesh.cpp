@@ -1,32 +1,34 @@
+#include <algorithm>
 #include <cassert>
 #include <cstddef>
 #include <ranges>
 #include <vector>
 
+#include "gpf/ids.hpp"
 #include "gpf/manifold_mesh.hpp"
 
 namespace {
 
 struct Empty {
-  [[nodiscard]] constexpr bool operator==(const Empty&) const = default;
+  [[nodiscard]] constexpr bool operator==(const Empty &) const = default;
 };
 
-template <class Range>
-std::size_t count_range(Range&& range) {
+template <class Range> std::size_t count_range(Range &&range) {
   std::size_t n = 0;
-  for (auto&& _ : range) {
+  for (auto &&_ : range) {
     (void)_;
     ++n;
   }
   return n;
 }
 
-}  // namespace
+} // namespace
 
 void test_manifold_mesh_single_triangle_boundary_loop() {
   using Mesh = gpf::ManifoldMesh<Empty, Empty, Empty, Empty>;
 
-  const Mesh mesh = Mesh::new_in(std::vector<std::vector<std::size_t>>{{0, 1, 2}});
+  const Mesh mesh =
+      Mesh::new_in(std::vector<std::vector<std::size_t>>{{0, 1, 2}});
 
   assert(mesh.n_vertices() == 3);
   assert(mesh.n_faces() == 1);
@@ -58,7 +60,8 @@ void test_manifold_mesh_single_triangle_boundary_loop() {
     assert(count == 3);
   }
 
-  for (const gpf::VertexId vid : {gpf::VertexId{0}, gpf::VertexId{1}, gpf::VertexId{2}}) {
+  for (const gpf::VertexId vid :
+       {gpf::VertexId{0}, gpf::VertexId{1}, gpf::VertexId{2}}) {
     assert(count_range(mesh.vertex(vid).incoming_halfedges()) == 2);
     assert(count_range(mesh.vertex(vid).outgoing_halfedges()) == 2);
   }
@@ -81,9 +84,17 @@ void test_manifold_mesh_tetrahedron_closed() {
   assert(mesh.n_edges() == 6);
   assert(mesh.n_halfedges() == 12);
 
+  auto vertices = mesh.vertex(gpf::VertexId{0}).outgoing_halfedges() |
+                  std::views::transform([](const auto v) { return v.to().id; }) |
+                  std::ranges::to<std::vector>();
+  auto v_it = std::ranges::find(vertices, 2ull, &gpf::VertexId::idx);
+  assert(v_it != std::ranges::end(vertices));
+  std::ranges::rotate(vertices, v_it);
+  assert((vertices == std::vector<gpf::VertexId>{gpf::VertexId{2ull}, gpf::VertexId{3ull}, gpf::VertexId{1ull}}));
+
   assert(count_range(mesh.halfedges() | std::views::filter([&](const auto he) {
-           return !mesh.he_face(he.id).valid();
-         })) == 0);
+                       return !mesh.he_face(he.id).valid();
+                     })) == 0);
 
   for (std::size_t eid = 0; eid < mesh.n_edges_capacity(); ++eid) {
     assert(count_range(mesh.edge(gpf::EdgeId{eid}).halfedges()) == 2);
