@@ -7,6 +7,7 @@
 namespace {
 struct VertexProp {
   std::array<double, 3> pt;
+  double angle_sum = 0.0;
 };
 
 struct EdgeProp {
@@ -14,10 +15,14 @@ struct EdgeProp {
   double len = 0.0;
 };
 
+struct HalfedgeProp {
+  double angle = 0.0;
+};
+
 }  // namespace
 
 void test_property_edge_length_updates() {
-  using Mesh = gpf::SurfaceMesh<VertexProp, gpf::Empty, EdgeProp, gpf::Empty>;
+  using Mesh = gpf::SurfaceMesh<VertexProp, HalfedgeProp, EdgeProp, gpf::Empty>;
 
   Mesh mesh = Mesh::new_in(std::vector<std::vector<std::size_t>>{{0, 1, 2}});
 
@@ -36,6 +41,8 @@ void test_property_edge_length_updates() {
 
   gpf::update_edge_lengths_squared<3>(mesh);
   gpf::update_edge_lengths<3>(mesh);
+  gpf::update_corner_angles(mesh);
+  gpf::update_vertex_angle_sums(mesh);
 
   for (auto e : mesh.edges()) {
     const auto [va, vb] = e.vertices();

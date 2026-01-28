@@ -1,11 +1,12 @@
 #pragma once
 
 #include <array>
-#include <cmath>
 #include <cstddef>
 #include <span>
+#include <cmath>
 
-#include "gpf/detail.hpp"
+#include "gpf/handles.hpp"
+
 
 namespace gpf {
 
@@ -24,23 +25,74 @@ template <std::size_t N>
   return sum;
 }
 
+template<std::size_t N, class Mesh>
+void update_edge_length_squared(gpf::EdgeHandle<Mesh, false> edge) {
+    const auto [va, vb] = edge.vertices();
+    const auto pa = position_span<N>(va.prop().pt);
+    const auto pb = position_span<N>(vb.prop().pt);
+    edge.prop().square_len = squared_distance(pa, pb);
+}
+
 template <std::size_t N, class Mesh>
 void update_edge_lengths_squared(Mesh& mesh) {
   for (auto e : mesh.edges()) {
-    const auto [va, vb] = e.vertices();
+    update_edge_length_squared<N>(e);
+  }
+}
+
+template<std::size_t N, class Mesh>
+void update_edge_length(gpf::EdgeHandle<Mesh, false> edge) {
+    const auto [va, vb] = edge.vertices();
     const auto pa = position_span<N>(va.prop().pt);
     const auto pb = position_span<N>(vb.prop().pt);
-    e.prop().square_len = squared_distance(pa, pb);
-  }
+    edge.prop().len = std::sqrt(squared_distance(pa, pb));
 }
 
 template <std::size_t N, class Mesh>
 void update_edge_lengths(Mesh& mesh) {
   for (auto e : mesh.edges()) {
-    const auto [va, vb] = e.vertices();
-    const auto pa = position_span<N>(va.prop().pt);
-    const auto pb = position_span<N>(vb.prop().pt);
-    e.prop().len = std::sqrt(squared_distance<N>(pa, pb));
+    update_edge_length<N>(e);
+  }
+}
+
+template<class Mesh>
+void update_corner_angle(
+  gpf::HalfedgeHandle<Mesh, false> hab,
+  gpf::HalfedgeHandle<Mesh, false> hbc,
+  gpf::HalfedgeHandle<Mesh, false> hca
+) {
+  auto lab = hab.edge().prop().len;
+  auto lbc = hbc.edge().prop().len;
+  auto lca = hca.edge().prop().len;
+  auto q = (lab * lab + lbc * lbc - lca * lca) / (2.0 * lab * lbc);
+  hca.prop().angle = std::acos(std::max(-1.0, std::min(q, 1.0)));
+}
+
+template <class Mesh>
+void update_corner_angles(Mesh& mesh) {
+  for (auto face : mesh.faces()) {
+    auto ha = face.halfedge();
+    auto hb = ha.next();
+    auto hc = hb.next();
+    assert(hc.next().id == ha.id);
+    update_corner_angle(ha, hb, hc);
+    update_corner_angle(hb, hc, ha);
+    update_corner_angle(hc, ha, hb);
+  }
+}
+template <class Mesh>
+void update_vertex_angle_sum(gpf::VertexHandle<Mesh, false>& vertex) {
+  double sum = 0.0;
+  for (auto he : vertex.incoming_halfedges()) {
+    sum += he.prop().angle;
+  }
+  vertex.prop().angle_sum = sum;
+}
+
+template <class Mesh>
+void update_vertex_angle_sums(Mesh& mesh) {
+  for (auto vertex : mesh.vertices()) {
+    update_vertex_angle_sum(vertex);
   }
 }
 }  // namespace gpf
