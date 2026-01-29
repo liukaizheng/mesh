@@ -3,7 +3,9 @@
 #include <algorithm>
 #include <cassert>
 #include <cstddef>
+#include <initializer_list>
 #include <ranges>
+#include <span>
 #include <unordered_map>
 #include <utility>
 #include <vector>
@@ -327,7 +329,7 @@ class ManifoldMesh {
     n_faces_ = (n_faces_ == 0) ? 0 : (n_faces_ - 1);
   }
 
-  FaceId new_face_by_halfedges(const std::vector<HalfedgeId>& halfedges) {
+  FaceId new_face_by_halfedges(const std::span<const HalfedgeId> halfedges) {
     if (halfedges.empty()) {
       return FaceId{};
     }
@@ -381,6 +383,10 @@ class ManifoldMesh {
     }
     face_data(new_fid).halfedge = halfedges[0];
     return new_fid;
+  }
+
+  FaceId new_face_by_halfedges(std::initializer_list<HalfedgeId> halfedges) {
+    return new_face_by_halfedges(std::span<const HalfedgeId>{halfedges.begin(), halfedges.size()});
   }
 
   void he_replace(HalfedgeId old_hid, HalfedgeId new_hid) {
