@@ -389,6 +389,26 @@ class ManifoldMesh {
     return new_face_by_halfedges(std::span<const HalfedgeId>{halfedges.begin(), halfedges.size()});
   }
 
+  auto he_prev_twin(HalfedgeId hid) const -> HalfedgeId {
+    return halfedge(hid).prev().twin().id;
+  }
+
+  auto he_next_twin(HalfedgeId hid) const -> HalfedgeId {
+    return halfedge(hid).next().twin().id;
+  }
+
+  auto he_twin_prev(HalfedgeId hid) const -> HalfedgeId {
+    return halfedge(hid).twin().prev().id;
+  }
+
+  auto he_twin_next(HalfedgeId hid) const -> HalfedgeId {
+      return halfedge(hid).twin().next().id;
+  }
+
+  auto he_to_to(HalfedgeId hid) const -> VertexId {
+    return halfedge(hid).next().to().id;
+  }
+
   void he_replace(HalfedgeId old_hid, HalfedgeId new_hid) {
     const VertexId va = he_from(old_hid);
     const HalfedgeId prev_hid = he_prev(old_hid);
