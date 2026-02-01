@@ -393,6 +393,80 @@ class ManifoldMesh {
     return new_face_by_halfedges(std::span<const HalfedgeId>{halfedges.begin(), halfedges.size()});
   }
 
+  void replace_face(const FaceId fid, std::span<const VertexId> triangles) {
+    assert(triangles.size() % 3 == 0);
+    if (!fid.valid()) {
+      return;
+    }
+
+    if (triangles.empty()) {
+      remove_face(fid);
+      return;
+    }
+
+    // Collect existing halfedges and build edge map
+    std::vector<HalfedgeId> face_halfedges;
+    std::unordered_map<std::pair<std::size_t, std::size_t>, HalfedgeId, detail::PairHash> edge_map;
+
+    for (const auto he : face(fid).halfedges()) {
+      face_halfedges.push_back(he.id);
+      const VertexId va = he_from(he.id);
+      const VertexId vb = he_to(he.id);
+      auto key = (va.idx < vb.idx) ? std::pair{va.idx, vb.idx} : std::pair{vb.idx, va.idx};
+      edge_map[key] = he.id;
+    }
+
+    // Clear the face - make all halfedges boundary
+    for (const HalfedgeId hid : face_halfedges) {
+      halfedge_data(hid).face = FaceId{};
+    }
+    face_data(fid).halfedge = HalfedgeId{};
+    n_faces_ = (n_faces_ == 0) ? 0 : (n_faces_ - 1);
+
+    // Helper to get or create a halfedge from va to vb
+    auto get_or_create_halfedge = [&](VertexId va, VertexId vb) -> HalfedgeId {
+      auto key = (va.idx < vb.idx) ? std::pair{va.idx, vb.idx} : std::pair{vb.idx, va.idx};
+
+      if (auto it = edge_map.find(key); it != edge_map.end()) {
+        HalfedgeId hid = it->second;
+        if (he_to(hid) == vb) {
+          return hid;
+        }
+        return he_twin(hid);
+      }
+
+      // Create new edge
+      HalfedgeId hid = new_edge();
+      HalfedgeId twin_hid = he_twin(hid);
+
+      halfedge_data(hid).vertex = vb;
+      halfedge_data(twin_hid).vertex = va;
+
+      edge_map[key] = hid;
+      return hid;
+    };
+
+    // Create triangular faces
+    const std::size_t n_triangles = triangles.size() / 3;
+    for (std::size_t i = 0; i < n_triangles; ++i) {
+      const VertexId v0 = triangles[i * 3];
+      const VertexId v1 = triangles[i * 3 + 1];
+      const VertexId v2 = triangles[i * 3 + 2];
+
+      std::array<HalfedgeId, 3> hes = {
+          get_or_create_halfedge(v0, v1),
+          get_or_create_halfedge(v1, v2),
+          get_or_create_halfedge(v2, v0)
+      };
+
+      new_face_by_halfedges(std::span<const HalfedgeId>{hes.data(), hes.size()});
+    }
+  }
+
+  void replace_face(const FaceId fid, std::initializer_list<VertexId> triangles) {
+    replace_face(fid, std::span<const VertexId>{triangles.begin(), triangles.size()});
+  }
+
   auto he_prev_twin(HalfedgeId hid) const -> HalfedgeId {
     return halfedge(hid).prev().twin().id;
   }
