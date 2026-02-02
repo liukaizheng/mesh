@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <cassert>
 #include <cstddef>
+#include <initializer_list>
 #include <ranges>
 #include <vector>
 
@@ -99,4 +100,21 @@ void test_manifold_mesh_tetrahedron_closed() {
   for (std::size_t eid = 0; eid < mesh.n_edges_capacity(); ++eid) {
     assert(count_range(mesh.edge(gpf::EdgeId{eid}).halfedges()) == 2);
   }
+}
+
+void test_split_face_into_triangles() {
+  using Mesh = gpf::ManifoldMesh<Empty, Empty, Empty, Empty>;
+
+  Mesh mesh =
+      Mesh::new_in(std::vector<std::vector<std::size_t>>{{0, 1, 2}});
+  mesh.new_vertices(1);
+  auto triangles = std::array<std::size_t, 9>{0, 1, 3, 1, 2, 3, 2, 0, 3} |
+    std::views::transform([](auto v) { return gpf::VertexId{v}; }) |
+    std::ranges::to<std::vector>();
+  mesh.split_face_into_triangles(gpf::FaceId{0ul}, triangles);
+
+  auto vertices = mesh.vertex(gpf::VertexId{3ul}).outgoing_halfedges() |
+                  std::views::transform([](const auto he) { return he.to().id; }) |
+                  std::ranges::to<std::vector>();
+  assert(vertices.size() == 3);
 }

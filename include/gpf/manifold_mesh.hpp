@@ -393,46 +393,25 @@ class ManifoldMesh {
     return new_face_by_halfedges(std::span<const HalfedgeId>{halfedges.begin(), halfedges.size()});
   }
 
-  void replace_face(const FaceId fid, std::span<const VertexId> triangles) {
+  void split_face_into_triangles(const FaceId fid, std::span<const VertexId> triangles) noexcept {
     assert(triangles.size() % 3 == 0);
-    if (!fid.valid()) {
-      return;
-    }
-
-    if (triangles.empty()) {
-      remove_face(fid);
-      return;
-    }
-
-    // Collect existing halfedges and build edge map
-    std::vector<HalfedgeId> face_halfedges;
-    std::unordered_map<std::pair<std::size_t, std::size_t>, HalfedgeId, detail::PairHash> edge_map;
+    std::unordered_map<std::pair<gpf::VertexId, gpf::VertexId>, HalfedgeId, detail::PairHash> edge_map;
+    edge_map.reserve(std::ranges::distance(face(fid).halfedges()));
 
     for (const auto he : face(fid).halfedges()) {
-      face_halfedges.push_back(he.id);
       const VertexId va = he_from(he.id);
       const VertexId vb = he_to(he.id);
-      auto key = (va.idx < vb.idx) ? std::pair{va.idx, vb.idx} : std::pair{vb.idx, va.idx};
-      edge_map[key] = he.id;
+      edge_map.emplace((va.idx < vb.idx) ? std::pair{va, vb} : std::pair{vb, va}, he.id);
     }
-
-    // Clear the face - make all halfedges boundary
-    for (const HalfedgeId hid : face_halfedges) {
-      halfedge_data(hid).face = FaceId{};
-    }
-    face_data(fid).halfedge = HalfedgeId{};
-    n_faces_ = (n_faces_ == 0) ? 0 : (n_faces_ - 1);
 
     // Helper to get or create a halfedge from va to vb
     auto get_or_create_halfedge = [&](VertexId va, VertexId vb) -> HalfedgeId {
-      auto key = (va.idx < vb.idx) ? std::pair{va.idx, vb.idx} : std::pair{vb.idx, va.idx};
+      auto key = (va.idx < vb.idx) ? std::pair{va, vb} : std::pair{vb, va};
 
       if (auto it = edge_map.find(key); it != edge_map.end()) {
         HalfedgeId hid = it->second;
-        if (he_to(hid) == vb) {
-          return hid;
-        }
-        return he_twin(hid);
+        assert(he_to(hid) == vb);
+        return hid;
       }
 
       // Create new edge
@@ -442,29 +421,47 @@ class ManifoldMesh {
       halfedge_data(hid).vertex = vb;
       halfedge_data(twin_hid).vertex = va;
 
-      edge_map[key] = hid;
+      auto& va_hid = vertex_data(va).halfedge;
+      auto& vb_hid = vertex_data(vb).halfedge;
+      if (!va_hid.valid()) {
+        va_hid = hid;
+      }
+      if (!vb_hid.valid()) {
+        vb_hid = twin_hid;
+      }
+
+      edge_map.emplace(std::move(key), twin_hid);
       return hid;
     };
 
     // Create triangular faces
     const std::size_t n_triangles = triangles.size() / 3;
+    std::array<HalfedgeId, 3> hes;
+
+    auto create_triangle = [this, &hes] (const auto new_fid) {
+      auto ha = hes[0];
+      auto hb = hes[1];
+      auto hc = hes[2];
+      halfedge_data(ha).face = new_fid;
+      halfedge_data(hb).face = new_fid;
+      halfedge_data(hc).face = new_fid;
+      connect_halfedges(ha, hb);
+      connect_halfedges(hb, hc);
+      connect_halfedges(hc, ha);
+      face_data(new_fid).halfedge = ha;
+    };
     for (std::size_t i = 0; i < n_triangles; ++i) {
       const VertexId v0 = triangles[i * 3];
       const VertexId v1 = triangles[i * 3 + 1];
       const VertexId v2 = triangles[i * 3 + 2];
 
-      std::array<HalfedgeId, 3> hes = {
-          get_or_create_halfedge(v0, v1),
-          get_or_create_halfedge(v1, v2),
-          get_or_create_halfedge(v2, v0)
-      };
+      hes[0] = get_or_create_halfedge(v0, v1);
+      hes[1] = get_or_create_halfedge(v1, v2);
+      hes[2] = get_or_create_halfedge(v2, v0);
 
-      new_face_by_halfedges(std::span<const HalfedgeId>{hes.data(), hes.size()});
+      const auto new_fid = i == 0 ? fid : new_face();
+      create_triangle(new_fid);
     }
-  }
-
-  void replace_face(const FaceId fid, std::initializer_list<VertexId> triangles) {
-    replace_face(fid, std::span<const VertexId>{triangles.begin(), triangles.size()});
   }
 
   auto he_prev_twin(HalfedgeId hid) const -> HalfedgeId {
