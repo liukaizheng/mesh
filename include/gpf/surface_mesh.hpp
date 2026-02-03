@@ -68,6 +68,49 @@ class SurfaceMesh {
     return mesh;
   }
 
+  template <class OtherVertexProp, class OtherHalfedgeProp, class OtherEdgeProp, class OtherFaceProp>
+  void copy_from(
+      const SurfaceMesh<OtherVertexProp, OtherHalfedgeProp, OtherEdgeProp, OtherFaceProp>& other) {
+    vertices_.resize(other.n_vertices_capacity());
+    for (std::size_t i = 0; i < other.n_vertices_capacity(); ++i) {
+      const auto& other_v = other.vertex_data(VertexId{i});
+      vertices_[i].halfedge = other_v.halfedge;
+      vertices_[i].property = VertexProp{};
+    }
+
+    halfedges_.resize(other.n_halfedges_capacity());
+    for (std::size_t i = 0; i < other.n_halfedges_capacity(); ++i) {
+      const auto& other_he = other.halfedge_data(HalfedgeId{i});
+      halfedges_[i].vertex = other_he.vertex;
+      halfedges_[i].next = other_he.next;
+      halfedges_[i].prev = other_he.prev;
+      halfedges_[i].face = other_he.face;
+      halfedges_[i].edge = other_he.edge;
+      halfedges_[i].sibling = other_he.sibling;
+      halfedges_[i].incoming_next = other_he.incoming_next;
+      halfedges_[i].property = HalfedgeProp{};
+    }
+
+    faces_.resize(other.n_faces_capacity());
+    for (std::size_t i = 0; i < other.n_faces_capacity(); ++i) {
+      const auto& other_f = other.face_data(FaceId{i});
+      faces_[i].halfedge = other_f.halfedge;
+      faces_[i].property = FaceProp{};
+    }
+
+    edges_.resize(other.n_edges_capacity());
+    for (std::size_t i = 0; i < other.n_edges_capacity(); ++i) {
+      const auto& other_e = other.edge_data(EdgeId{i});
+      edges_[i].halfedge = other_e.halfedge;
+      edges_[i].property = EdgeProp{};
+    }
+
+    n_vertices_ = other.n_vertices();
+    n_halfedges_ = other.n_halfedges();
+    n_faces_ = other.n_faces();
+    n_edges_ = other.n_edges();
+  }
+
   [[nodiscard]] std::size_t n_vertices() const { return n_vertices_; }
   [[nodiscard]] std::size_t n_halfedges() const { return n_halfedges_; }
   [[nodiscard]] std::size_t n_edges() const { return n_edges_; }
