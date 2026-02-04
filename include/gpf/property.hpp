@@ -4,15 +4,14 @@
 #include <concepts>
 #include <cstddef>
 #include <span>
-#include <utility>
 
 #include "gpf/handles.hpp"
 
 namespace gpf {
 
-template <std::size_t N, class VP>
-[[nodiscard]] std::span<const double, N> position_span(VP &vp) {
-  return std::span<const double, N>{vp.pt};
+template <std::size_t N, typename Mesh>
+[[nodiscard]] std::span<const double, N> position_span(const VertexHandle<Mesh, false>& v) {
+  return std::span<const double, N>{v.prop().pt};
 }
 
 template <std::size_t N>
@@ -26,57 +25,66 @@ template <std::size_t N>
   return sum;
 }
 
-template <class F, std::size_t N, class Arg>
+template <std::size_t N, class F, class Arg>
 concept ReturnsPositionSpan = requires(F f, Arg arg) {
   { f(arg) } -> std::same_as<std::span<const double, N>>;
 };
 
-template <
-    std::size_t N, class Mesh,
-    class PositionSpan =
-        decltype(gpf::position_span<
-                 N, decltype(std::declval<gpf::VertexHandle<Mesh, false>>()
-                                 .prop())>) *>
-  requires ReturnsPositionSpan<
-      PositionSpan, N,
-      decltype(std::declval<gpf::VertexHandle<Mesh, false>>().prop())>
+template <std::size_t N, class Mesh, class PositionSpan>
+  requires ReturnsPositionSpan<N, PositionSpan, const VertexHandle<Mesh, false>&>
 void update_edge_length_squared(
     gpf::EdgeHandle<Mesh, false> edge,
-    PositionSpan position_span = gpf::position_span<N>) {
+    PositionSpan pos_span) {
   const auto [va, vb] = edge.vertices();
-  const auto pa = position_span(va.prop());
-  const auto pb = position_span(vb.prop());
+  const auto pa = pos_span(va);
+  const auto pb = pos_span(vb);
   edge.prop().square_len = squared_distance(pa, pb);
 }
 
 template <std::size_t N, class Mesh>
-void update_edge_lengths_squared(Mesh &mesh) {
+void update_edge_length_squared(gpf::EdgeHandle<Mesh, false> edge) {
+  update_edge_length_squared<N>(edge, position_span<N, Mesh>);
+}
+
+template <std::size_t N, class Mesh, class PositionSpan>
+  requires ReturnsPositionSpan<N, PositionSpan, const VertexHandle<Mesh, false>&>
+void update_edge_lengths_squared(Mesh &mesh, PositionSpan pos_span) {
   for (auto e : mesh.edges()) {
-    update_edge_length_squared<N>(e);
+    update_edge_length_squared<N>(e, pos_span);
   }
 }
 
-template <
-    std::size_t N, class Mesh,
-    class PositionSpan =
-        decltype(gpf::position_span<
-                 N, decltype(std::declval<gpf::VertexHandle<Mesh, false>>()
-                                 .prop())>) *>
-  requires ReturnsPositionSpan<
-      PositionSpan, N,
-      decltype(std::declval<gpf::VertexHandle<Mesh, false>>().prop())>
+template <std::size_t N, class Mesh>
+void update_edge_lengths_squared(Mesh &mesh) {
+  update_edge_lengths_squared<N>(mesh, position_span<N, Mesh>);
+}
+
+template <std::size_t N, class Mesh, class PositionSpan>
+  requires ReturnsPositionSpan<N, PositionSpan, const VertexHandle<Mesh, false>&>
 void update_edge_length(gpf::EdgeHandle<Mesh, false> edge,
-                        PositionSpan position_span = gpf::position_span<N>) {
+                        PositionSpan pos_span) {
   const auto [va, vb] = edge.vertices();
-  const auto pa = position_span(va.prop());
-  const auto pb = position_span(vb.prop());
+  const auto pa = pos_span(va);
+  const auto pb = pos_span(vb);
   edge.prop().len = std::sqrt(squared_distance(pa, pb));
 }
 
-template <std::size_t N, class Mesh> void update_edge_lengths(Mesh &mesh) {
+template <std::size_t N, class Mesh>
+void update_edge_length(gpf::EdgeHandle<Mesh, false> edge) {
+  update_edge_length<N>(edge, position_span<N, Mesh>);
+}
+
+template <std::size_t N, class Mesh, class PositionSpan>
+  requires ReturnsPositionSpan<N, PositionSpan, const VertexHandle<Mesh, false>&>
+void update_edge_lengths(Mesh &mesh, PositionSpan pos_span) {
   for (auto e : mesh.edges()) {
-    update_edge_length<N>(e);
+    update_edge_length<N>(e, pos_span);
   }
+}
+
+template <std::size_t N, class Mesh>
+void update_edge_lengths(Mesh &mesh) {
+  update_edge_lengths<N>(mesh, position_span<N, Mesh>);
 }
 
 template <class Mesh>
