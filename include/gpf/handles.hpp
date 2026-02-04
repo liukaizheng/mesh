@@ -11,6 +11,20 @@
 
 namespace gpf {
 
+// Forward declaration for ManifoldMesh
+template <class, class, class, class>
+class ManifoldMesh;
+
+// Type trait to detect ManifoldMesh
+template <typename T>
+struct is_manifold_mesh : std::false_type {};
+
+template <class VP, class HP, class EP, class FP>
+struct is_manifold_mesh<ManifoldMesh<VP, HP, EP, FP>> : std::true_type {};
+
+template <typename T>
+inline constexpr bool is_manifold_mesh_v = is_manifold_mesh<T>::value;
+
 template <class Mesh, bool Const>
 using mesh_ptr_t = std::conditional_t<Const, const Mesh*, Mesh*>;
 
@@ -480,12 +494,17 @@ HalfedgeHandle<Mesh, Const> HalfedgeHandle<Mesh, Const>::incoming_next() const {
 
 template <class Mesh, bool Const>
 HalfedgeHandle<Mesh, Const> HalfedgeHandle<Mesh, Const>::twin() const {
-  const VertexId to_vid = data().vertex;
-  HalfedgeHandle<Mesh, Const> sib = sibling();
-  while (sib.data().vertex == to_vid) {
-    sib = sib.sibling();
+  if constexpr (is_manifold_mesh_v<Mesh>) {
+    // For manifold meshes, each edge has exactly 2 halfedges, so twin == sibling
+    return sibling();
+  } else {
+    const VertexId to_vid = data().vertex;
+    HalfedgeHandle<Mesh, Const> sib = sibling();
+    while (sib.data().vertex == to_vid) {
+      sib = sib.sibling();
+    }
+    return sib;
   }
-  return sib;
 }
 
 template <class Mesh, bool Const>

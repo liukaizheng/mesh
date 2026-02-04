@@ -70,6 +70,25 @@ void test_manifold_mesh_single_triangle_boundary_loop() {
   assert(count_range(mesh.edge(gpf::EdgeId{0}).halfedges()) == 2);
 }
 
+void test_manifold_vertex_halfedges() {
+  using Mesh = gpf::ManifoldMesh<Empty, Empty, Empty, Empty>;
+
+  const Mesh mesh = Mesh::new_in(std::vector<std::vector<std::size_t>>{
+      {0, 2, 3},
+      {0, 1, 2},
+      {0, 3, 4}
+  });
+
+  const auto incoming_vertices = mesh.vertex(gpf::VertexId{0}).incoming_halfedges() |
+                                 std::views::transform([](const auto he) { return he.from().id; }) |
+                                 std::ranges::to<std::vector>();
+  const auto outgoing_vertices = mesh.vertex(gpf::VertexId{0}).outgoing_halfedges() |
+                                 std::views::transform([](const auto he) { return he.to().id; }) |
+                                 std::ranges::to<std::vector>();
+  assert(incoming_vertices.front() == gpf::VertexId{1ul});
+  assert(outgoing_vertices.front() == gpf::VertexId{4ul});
+}
+
 void test_manifold_mesh_tetrahedron_closed() {
   using Mesh = gpf::ManifoldMesh<Empty, Empty, Empty, Empty>;
 

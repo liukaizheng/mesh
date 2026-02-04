@@ -192,6 +192,10 @@ class ManifoldMesh {
            std::views::transform([this](const std::size_t i) { return ConstEdge{EdgeId{i}, this}; });
   }
 
+  [[nodiscard]] bool v_is_boundary(VertexId vid) const {
+    return he_is_boundary(vertex_data(vid).halfedge);
+  }
+
   [[nodiscard]] HalfedgeId he_twin(HalfedgeId hid) const { return hid ^ 1; }
 
   [[nodiscard]] bool he_is_boundary(HalfedgeId hid) const { return !he_face(hid).valid(); }
