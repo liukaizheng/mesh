@@ -10,6 +10,11 @@
 
 namespace gpf {
 
+constexpr double triangle_area(const double lab, const double lbc, const double lca) noexcept {
+  const double s = (lab + lbc + lca) / 2.0;
+  return std::sqrt(std::max(0.0, s * (s - lab) * (s - lbc) * (s - lca)));
+}
+
 // Concept for vertex with position property that can be viewed as span<const double, N>
 template <typename V, std::size_t N>
 concept HasPositionProperty = requires(V v) {
@@ -147,14 +152,13 @@ void update_corner_angle(gpf::HalfedgeHandle<Mesh, false> hab,
   auto lbc = hbc.edge().prop().len;
   auto lca = hca.edge().prop().len;
   auto q = (lab * lab + lbc * lbc - lca * lca) / (2.0 * lab * lbc);
-  hab.prop().angle = std::acos(std::max(-1.0, std::min(q, 1.0)));
+  hbc.prop().angle = std::acos(std::max(-1.0, std::min(q, 1.0)));
 }
 
 template <class Mesh>
   requires HasLengthProperty<EdgeHandle<Mesh, false>> &&
            HasAngleProperty<HalfedgeHandle<Mesh, false>>
-void update_corner_angles(Mesh &mesh) {
-  for (auto face : mesh.faces()) {
+void update_corner_angles_on_face(gpf::FaceHandle<Mesh, false> face) {
     auto ha = face.halfedge();
     auto hb = ha.next();
     auto hc = hb.next();
@@ -162,6 +166,14 @@ void update_corner_angles(Mesh &mesh) {
     update_corner_angle(ha, hb, hc);
     update_corner_angle(hb, hc, ha);
     update_corner_angle(hc, ha, hb);
+}
+
+template <class Mesh>
+  requires HasLengthProperty<EdgeHandle<Mesh, false>> &&
+           HasAngleProperty<HalfedgeHandle<Mesh, false>>
+void update_corner_angles(Mesh &mesh) {
+  for (auto face : mesh.faces()) {
+      update_corner_angles_on_face(face);
   }
 }
 template <class Mesh>
@@ -170,7 +182,7 @@ template <class Mesh>
 void update_vertex_angle_sum(gpf::VertexHandle<Mesh, false> vertex) {
   double sum = 0.0;
   for (auto he : vertex.incoming_halfedges()) {
-    sum += he.prop().angle;
+    sum += he.twin().prop().angle;
   }
   vertex.prop().angle_sum = sum;
 }
