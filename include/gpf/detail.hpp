@@ -44,4 +44,14 @@ decltype(auto) property_ref(const EdgeData& data) {
     return (data);
   }
 }
+template <class Mesh>
+[[nodiscard]] HalfedgeId he_from_vertices_impl(const Mesh& mesh, VertexId va, VertexId vb) {
+  for (const auto he : mesh.vertex(va).outgoing_halfedges()) {
+    if (mesh.he_to(he.id) == vb) {
+      return he.id;
+    }
+  }
+  return HalfedgeId{};
+}
+
 }  // namespace gpf::detail

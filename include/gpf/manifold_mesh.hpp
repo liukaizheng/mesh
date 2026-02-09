@@ -235,6 +235,10 @@ class ManifoldMesh {
     return EdgeId{};
   }
 
+  [[nodiscard]] HalfedgeId he_from_vertices(VertexId va, VertexId vb) const {
+    return detail::he_from_vertices_impl(*this, va, vb);
+  }
+
   [[nodiscard]] std::array<VertexId, 2> e_vertices(EdgeId eid) const {
     const HalfedgeId hid = e_halfedge(eid);
     return {he_from(hid), he_to(hid)};

@@ -241,6 +241,10 @@ class SurfaceMesh {
     return EdgeId{};
   }
 
+  [[nodiscard]] HalfedgeId he_from_vertices(VertexId va, VertexId vb) const {
+    return detail::he_from_vertices_impl(*this, va, vb);
+  }
+
   [[nodiscard]] HalfedgeId he_from_oppo_vertex(FaceId fid, VertexId vid) const {
     for (const auto he : face(fid).halfedges()) {
       if (he.data().vertex == vid) {
