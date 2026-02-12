@@ -202,7 +202,7 @@ class ManifoldMesh {
 
   [[nodiscard]] HalfedgeId v_halfedge(VertexId vid) const { return vertex_data(vid).halfedge; }
 
-  [[nodiscard]] VertexId he_from(HalfedgeId hid) const { return halfedges_[halfedges_[hid.idx].prev.idx].vertex; }
+  [[nodiscard]] VertexId he_from(HalfedgeId hid) const { return halfedges_[he_twin(hid).idx].vertex; }
   [[nodiscard]] VertexId he_to(HalfedgeId hid) const { return halfedges_[hid.idx].vertex; }
   [[nodiscard]] std::array<VertexId, 2> he_vertices(HalfedgeId hid) const {
     return {he_from(hid), he_to(hid)};
