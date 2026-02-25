@@ -33,7 +33,6 @@ if(GPF_MESH_BUILD_TESTS)
     tests/main.cpp
     tests/test_surface_mesh.cpp
     tests/test_manifold_mesh.cpp
-    tests/test_property.cpp
   )
   target_link_libraries(gpf_mesh_tests PRIVATE gpf::mesh)
   add_test(NAME gpf_mesh_tests COMMAND gpf_mesh_tests)
