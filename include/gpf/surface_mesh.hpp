@@ -14,7 +14,7 @@
 
 namespace gpf {
 
-template <class VertexProp, class HalfedgeProp, class EdgeProp, class FaceProp>
+template <class VertexProp = Empty, class HalfedgeProp = Empty, class EdgeProp = Empty, class FaceProp = Empty>
 class SurfaceMesh {
  public:
   struct VertexData {
@@ -217,6 +217,8 @@ class SurfaceMesh {
   [[nodiscard]] EdgeId he_edge(HalfedgeId hid) const { return halfedges_[hid.idx].edge; }
   [[nodiscard]] HalfedgeId he_sibling(HalfedgeId hid) const { return halfedges_[hid.idx].sibling; }
   [[nodiscard]] HalfedgeId he_incoming_next(HalfedgeId hid) const { return halfedges_[hid.idx].incoming_next; }
+  [[nodiscard]] HalfedgeId he_twin(HalfedgeId hid) const { return halfedge(hid).twin().id; }
+  [[nodiscard]] bool he_canonical_dir(HalfedgeId hid) const { return detail::he_canonical_dir_impl(*this, hid); }
 
   [[nodiscard]] HalfedgeId e_halfedge(EdgeId eid) const { return edges_[eid.idx].halfedge; }
   [[nodiscard]] std::array<VertexId, 2> e_vertices(EdgeId eid) const {

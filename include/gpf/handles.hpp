@@ -499,9 +499,13 @@ HalfedgeHandle<Mesh, Const> HalfedgeHandle<Mesh, Const>::twin() const {
     return sibling();
   } else {
     const VertexId to_vid = data().vertex;
+    const auto first_hid = this->id;
     HalfedgeHandle<Mesh, Const> sib = sibling();
     while (sib.data().vertex == to_vid) {
       sib = sib.sibling();
+      if (sib.id == first_hid) {
+        return HalfedgeHandle<Mesh, Const>{};
+      }
     }
     return sib;
   }

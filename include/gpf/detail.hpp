@@ -5,7 +5,12 @@
 
 #include "gpf/ids.hpp"
 
-namespace gpf::detail {
+namespace gpf {
+struct Empty {
+  [[nodiscard]] constexpr bool operator==(const Empty&) const = default;
+};
+
+namespace detail {
 
 [[nodiscard]] constexpr std::pair<VertexId, VertexId> ordered_pair(VertexId a, VertexId b) {
   if (a.idx < b.idx) {
@@ -54,4 +59,10 @@ template <class Mesh>
   return HalfedgeId{};
 }
 
-}  // namespace gpf::detail
+template <class Mesh>
+[[nodiscard]] bool he_canonical_dir_impl(const Mesh& mesh, HalfedgeId hid) {
+  auto he = mesh.halfedge(hid);
+  return he.to().id == he.edge().halfedge().to().id;
+}
+}  // namespace detail
+}  // namespace gpf

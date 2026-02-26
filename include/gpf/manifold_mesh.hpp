@@ -16,7 +16,7 @@
 
 namespace gpf {
 
-template <class VertexProp, class HalfedgeProp, class EdgeProp, class FaceProp>
+template <class VertexProp = Empty, class HalfedgeProp = Empty, class EdgeProp = Empty, class FaceProp = Empty>
 class ManifoldMesh {
  public:
   struct VertexData {
@@ -211,10 +211,10 @@ class ManifoldMesh {
   [[nodiscard]] HalfedgeId he_prev(HalfedgeId hid) const { return halfedges_[hid.idx].prev; }
   [[nodiscard]] HalfedgeId he_next(HalfedgeId hid) const { return halfedges_[hid.idx].next; }
   [[nodiscard]] FaceId he_face(HalfedgeId hid) const { return halfedges_[hid.idx].face; }
-
   [[nodiscard]] EdgeId he_edge(HalfedgeId hid) const { return EdgeId{hid.idx >> 1}; }
   [[nodiscard]] HalfedgeId he_sibling(HalfedgeId hid) const { return he_twin(hid); }
   [[nodiscard]] HalfedgeId he_incoming_next(HalfedgeId hid) const { return he_prev(he_twin(hid)); }
+  [[nodiscard]] bool he_canonical_dir(HalfedgeId hid) const { return detail::he_canonical_dir_impl(*this, hid); }
 
   [[nodiscard]] HalfedgeId e_halfedge(EdgeId eid) const { return HalfedgeId{eid.idx << 1}; }
 
