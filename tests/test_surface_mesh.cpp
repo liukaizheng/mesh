@@ -178,3 +178,88 @@ void test_surface_mesh_split_edge_and_split_face() {
     }
   }
 }
+
+void test_surface_mesh_collapse_edge() {
+  using Mesh = gpf::SurfaceMesh<Empty, Empty, Empty, Empty>;
+
+  Mesh mesh = Mesh::new_in(std::vector<std::vector<std::size_t>>{
+      {0, 1, 2},
+      {0, 2, 3},
+      {0, 3, 4},
+  });
+
+  assert(mesh.n_vertices() == 5);
+  assert(mesh.n_faces() == 3);
+  assert(mesh.n_edges() == 7);
+  assert(mesh.n_halfedges() == 9);
+
+  const auto eid = mesh.e_from_vertices(gpf::VertexId{0}, gpf::VertexId{1});
+  assert(eid.valid());
+
+  const auto kept_vid = mesh.collapse_edge(eid);
+  assert(kept_vid.valid());
+
+  assert(mesh.n_vertices() == 4);
+  assert(mesh.n_faces() == 2);
+  assert(mesh.n_edges() == 5);
+  assert(mesh.n_halfedges() == 6);
+
+  for (auto f : mesh.faces()) {
+    std::size_t face_he_count = 0;
+    for (auto he : f.halfedges()) {
+      assert(mesh.halfedge_data(he.id).face == f.id);
+      assert(mesh.halfedge_data(he.id).next == he.next().id);
+      assert(mesh.halfedge_data(he.id).prev == he.prev().id);
+      face_he_count++;
+    }
+    assert(face_he_count == 3);
+  }
+
+  for (auto v : mesh.vertices()) {
+    std::size_t in_count = count_range(v.incoming_halfedges());
+    assert(in_count > 0);
+  }
+}
+
+void test_surface_mesh_collapse_edge_nonmanifold() {
+  using Mesh = gpf::SurfaceMesh<Empty, Empty, Empty, Empty>;
+
+  Mesh mesh = Mesh::new_in(std::vector<std::vector<std::size_t>>{
+      {0, 1, 2},
+      {0, 1, 3},
+      {1, 0, 4},
+      {0, 1, 5},
+      {1, 0, 6},
+      {2, 3, 4},
+  });
+
+  assert(mesh.n_vertices() == 7);
+  assert(mesh.n_faces() == 6);
+
+  const auto eid = mesh.e_from_vertices(gpf::VertexId{0}, gpf::VertexId{1});
+  assert(eid.valid());
+
+  const auto edge_n_halfedges = count_range(mesh.edge(eid).halfedges());
+  assert(edge_n_halfedges == 5);
+
+  const auto kept_vid = mesh.collapse_edge(eid);
+  assert(kept_vid.valid());
+
+  assert(mesh.n_faces() == 1);
+  assert(mesh.n_edges() == 3);
+  assert(mesh.n_halfedges() == 3);
+
+  for (auto f : mesh.faces()) {
+    std::size_t face_he_count = 0;
+    for (auto he : f.halfedges()) {
+      assert(mesh.halfedge_data(he.id).face == f.id);
+      face_he_count++;
+    }
+    assert(face_he_count == 3);
+  }
+
+  for (auto v : mesh.vertices()) {
+    std::size_t in_count = count_range(v.incoming_halfedges());
+    assert(in_count > 0);
+  }
+}

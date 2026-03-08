@@ -205,6 +205,8 @@ class SurfaceMesh {
            std::views::transform([this](const std::size_t i) { return ConstEdge{EdgeId{i}, this}; });
   }
 
+  [[nodiscard]] HalfedgeId v_halfedge(VertexId vid) const { return vertex_data(vid).halfedge; }
+
   [[nodiscard]] VertexId he_from(HalfedgeId hid) const { return halfedges_[halfedges_[hid.idx].prev.idx].vertex; }
   [[nodiscard]] VertexId he_to(HalfedgeId hid) const { return halfedges_[hid.idx].vertex; }
   [[nodiscard]] std::array<VertexId, 2> he_vertices(HalfedgeId hid) const {
@@ -550,6 +552,82 @@ class SurfaceMesh {
   }
 
   void set_he_sibling(HalfedgeId hid, HalfedgeId sid) { halfedge_data(hid).sibling = sid; }
+  void set_he_incoming_next(HalfedgeId hid, HalfedgeId he_incoming_next) { halfedge_data(hid).incoming_next = he_incoming_next; }
+
+  VertexId collapse_edge(EdgeId eid) {
+    const auto repr_hid = e_halfedge(eid);
+    const auto [va, vb] = he_vertices(repr_hid);
+    assert(va.valid() && vb.valid() && va != vb);
+
+    const auto splice_cycles = [this](HalfedgeId ha, HalfedgeId hb, HalfedgeId HalfedgeData::*link) {
+      auto ha_next = halfedge_data(ha).*link;
+      auto hb_last = halfedge_data(hb).*link;
+      while (halfedge_data(hb_last).*link != hb) {
+        hb_last = halfedge_data(hb_last).*link;
+      }
+      halfedge_data(ha).*link = hb;
+      halfedge_data(hb_last).*link = ha_next;
+    };
+
+    const auto compact_cycle = [this](HalfedgeId first_hid, HalfedgeId HalfedgeData::*link) {
+      while (!halfedge_data(first_hid).vertex.valid()) {
+        first_hid = halfedge_data(first_hid).*link;
+      }
+      auto curr = first_hid;
+      do {
+        auto next = halfedge_data(curr).*link;
+        while (!halfedge_data(next).vertex.valid()) {
+          next = halfedge_data(next).*link;
+        }
+        halfedge_data(curr).*link = next;
+        curr = next;
+      } while (curr != first_hid);
+      return first_hid;
+    };
+
+    constexpr auto sibling = &HalfedgeData::sibling;
+    constexpr auto incoming = &HalfedgeData::incoming_next;
+
+    splice_cycles(he_prev(v_halfedge(va)), he_prev(v_halfedge(vb)), incoming);
+    for (const auto he : edge(eid).halfedges()) {
+      auto he_vb = he.data().vertex;
+      delete_halfedge(he.id);
+      auto prev_hid = he.prev().id;
+      auto next_hid = he.next().id;
+      connect_halfedges(prev_hid, next_hid);
+      if (he_next(next_hid) == prev_hid) {
+        auto vc = he_to(next_hid);
+        auto keep_eid = he_edge(next_hid);
+        {
+          auto discard_eid = he_edge(prev_hid);
+          if (he_vb == vb) {
+            std::swap(keep_eid, discard_eid);
+          }
+          for (auto h : edge(discard_eid).halfedges()) {
+            h.data().edge = keep_eid;
+          }
+          delete_edge(discard_eid);
+        }
+        splice_cycles(prev_hid, next_hid, sibling);
+        delete_halfedge(next_hid);
+        delete_halfedge(prev_hid);
+        vertex_data(vc).halfedge = he_next(compact_cycle(next_hid, incoming));
+        edge_data(keep_eid).halfedge = compact_cycle(prev_hid, sibling);
+        delete_face(he.face().id);
+      } else {
+        he.face().data().halfedge = next_hid;
+      }
+    }
+    vertex_data(va).halfedge = he_next(compact_cycle(vertex(va).halfedge().prev().id, incoming));
+    for (auto he : vertex(va).incoming_halfedges()) {
+      if (he.to().id != va) {
+        he.data().vertex = va;
+      }
+    }
+    delete_vertex(vb);
+    delete_edge(eid);
+    return va;
+  }
 
  private:
   std::vector<VertexData> vertices_;
