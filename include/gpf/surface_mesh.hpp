@@ -342,6 +342,32 @@ class SurfaceMesh {
     return !face_data(fid).halfedge.valid();
   }
 
+  void splice_cycles(HalfedgeId ha, HalfedgeId hb, HalfedgeId HalfedgeData::*link) {
+    auto ha_next = halfedge_data(ha).*link;
+    auto hb_last = halfedge_data(hb).*link;
+    while (halfedge_data(hb_last).*link != hb) {
+      hb_last = halfedge_data(hb_last).*link;
+    }
+    halfedge_data(ha).*link = hb;
+    halfedge_data(hb_last).*link = ha_next;
+  }
+
+  [[nodiscard]] HalfedgeId compact_cycle(HalfedgeId first_hid, HalfedgeId HalfedgeData::*link) {
+    while (!halfedge_data(first_hid).vertex.valid()) {
+      first_hid = halfedge_data(first_hid).*link;
+    }
+    auto curr = first_hid;
+    do {
+      auto next = halfedge_data(curr).*link;
+      while (!halfedge_data(next).vertex.valid()) {
+        next = halfedge_data(next).*link;
+      }
+      halfedge_data(curr).*link = next;
+      curr = next;
+    } while (curr != first_hid);
+    return first_hid;
+  }
+
   void reassign_face_vertex_halfedge(FaceId fid) {
     VertexId prev_vid{};
     HalfedgeId first_hid{};
@@ -559,32 +585,6 @@ class SurfaceMesh {
     const auto [va, vb] = he_vertices(repr_hid);
     assert(va.valid() && vb.valid() && va != vb);
 
-    const auto splice_cycles = [this](HalfedgeId ha, HalfedgeId hb, HalfedgeId HalfedgeData::*link) {
-      auto ha_next = halfedge_data(ha).*link;
-      auto hb_last = halfedge_data(hb).*link;
-      while (halfedge_data(hb_last).*link != hb) {
-        hb_last = halfedge_data(hb_last).*link;
-      }
-      halfedge_data(ha).*link = hb;
-      halfedge_data(hb_last).*link = ha_next;
-    };
-
-    const auto compact_cycle = [this](HalfedgeId first_hid, HalfedgeId HalfedgeData::*link) {
-      while (!halfedge_data(first_hid).vertex.valid()) {
-        first_hid = halfedge_data(first_hid).*link;
-      }
-      auto curr = first_hid;
-      do {
-        auto next = halfedge_data(curr).*link;
-        while (!halfedge_data(next).vertex.valid()) {
-          next = halfedge_data(next).*link;
-        }
-        halfedge_data(curr).*link = next;
-        curr = next;
-      } while (curr != first_hid);
-      return first_hid;
-    };
-
     constexpr auto sibling = &HalfedgeData::sibling;
     constexpr auto incoming = &HalfedgeData::incoming_next;
 
@@ -628,7 +628,12 @@ class SurfaceMesh {
     delete_edge(eid);
     return va;
   }
-
+  VertexId collapse_triangle_on_edge(HalfedgeId ha) {
+    auto hb = he_next(ha);
+    auto hc = he_next(hb);
+    assert(he_next(hc) == hb);
+    split_edge(ha);
+  }
  private:
   std::vector<VertexData> vertices_;
   std::vector<HalfedgeData> halfedges_;
