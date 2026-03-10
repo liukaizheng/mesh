@@ -366,6 +366,9 @@ class SurfaceMesh {
     const HalfedgeId ret{halfedges_.size()};
     halfedges_.resize(ret.idx + n);
     n_halfedges_ += n;
+    if (halfedges_.size() > 39561) {
+      int a = 0;
+    }
     return ret;
   }
 
@@ -682,11 +685,7 @@ class SurfaceMesh {
     halfedge_data(hid).incoming_next = he_incoming_next;
   }
 
-  VertexId collapse_edge(EdgeId eid) {
-    const auto repr_hid = e_halfedge(eid);
-    const auto [va, vb] = he_vertices(repr_hid);
-    assert(va.valid() && vb.valid() && va != vb);
-
+  VertexId collapse_edge(EdgeId eid, VertexId va, VertexId vb) {
     constexpr auto sibling = &HalfedgeData::sibling;
     constexpr auto incoming = &HalfedgeData::incoming_next;
 
@@ -745,7 +744,7 @@ class SurfaceMesh {
     auto ec = he_edge(hc);
 
     auto degenerate_fid = he_face(hc);
-    auto curr_hid = he_sibling(ha);
+    auto curr_hid = he_sibling(hc);
     bool reused_ab = false;
 
     auto insert_sibling = [this](HalfedgeId hid, EdgeId eid) {
@@ -768,7 +767,7 @@ class SurfaceMesh {
       halfedge_data(hid).incoming_next = next_hid;
     };
 
-    while (curr_hid != ha) {
+    while (curr_hid != hc) {
       auto next_hid = he_sibling(curr_hid);
       auto vd = he_to(he_next(curr_hid));
       const bool reversed = he_to(curr_hid) == vb;
@@ -860,6 +859,7 @@ class SurfaceMesh {
       delete_halfedge(curr_hid);
       curr_hid = next_hid;
     }
+    delete_halfedge(hc);
     if (!reused_ab) [[unlikely]] {
       delete_halfedge(ha);
       delete_halfedge(hb);
@@ -875,8 +875,8 @@ class SurfaceMesh {
         vertex_data(vc).halfedge = {};
       }
     }
-    compact_cycle(hb, &HalfedgeData::incoming_next);
-    compact_cycle(hc, &HalfedgeData::incoming_next);
+    vertex_data(va).halfedge = he_next(compact_cycle(hb, &HalfedgeData::incoming_next));
+    vertex_data(vb).halfedge = he_next(compact_cycle(hc, &HalfedgeData::incoming_next));
     delete_edge(ec);
     delete_face(degenerate_fid);
   }
