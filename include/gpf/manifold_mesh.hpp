@@ -483,7 +483,7 @@ class ManifoldMesh {
     const std::size_t n_triangles = triangles.size() / 3;
     std::array<HalfedgeId, 3> hes;
 
-    auto create_triangle = [this, &hes] (const auto new_fid) {
+    auto create_triangle = [this, fid, &hes] (const auto new_fid) {
       auto ha = hes[0];
       auto hb = hes[1];
       auto hc = hes[2];
@@ -494,6 +494,9 @@ class ManifoldMesh {
       connect_halfedges(hb, hc);
       connect_halfedges(hc, ha);
       face_data(new_fid).halfedge = ha;
+      if (new_fid != fid) [[likely]] {
+        face_prop(new_fid) = face_prop(fid);
+      }
     };
     for (std::size_t i = 0; i < n_triangles; ++i) {
       const VertexId v0 = triangles[i * 3];
@@ -595,6 +598,14 @@ class ManifoldMesh {
     }
   }
 
+  void update_vertex_halfedges() {
+    for (auto he : halfedges()) {
+      if (he_is_boundary(he.id)) {
+        vertex_data(he.from().id).halfedge = he.id;
+      }
+    }
+  }
+
   VertexId split_edge(EdgeId eid) {
     const HalfedgeId hid = e_halfedge(eid);
     const HalfedgeId twin_hid = he_twin(hid);
@@ -673,6 +684,7 @@ class ManifoldMesh {
 
     face_data(fid).halfedge = first_he;
     face_data(new_f).halfedge = second_he;
+    face_prop(new_f) = face_prop(fid);
     return second_he;
   }
 
