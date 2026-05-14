@@ -375,9 +375,6 @@ class SurfaceMesh {
     const HalfedgeId ret{halfedges_.size()};
     halfedges_.resize(ret.idx + n);
     n_halfedges_ += n;
-    if (halfedges_.size() > 39561) {
-      int a = 0;
-    }
     return ret;
   }
 

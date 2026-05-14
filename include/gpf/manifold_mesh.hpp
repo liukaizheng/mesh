@@ -467,6 +467,22 @@ class ManifoldMesh {
     n_faces_ = (n_faces_ == 0) ? 0 : (n_faces_ - 1);
   }
 
+  [[nodiscard]] bool vertex_is_deleted(VertexId vid) const {
+    return !vertex_data(vid).halfedge.valid();
+  }
+
+  [[nodiscard]] bool halfedge_is_deleted(HalfedgeId hid) const {
+    return !halfedge_data(hid).vertex.valid();
+  }
+
+  [[nodiscard]] bool edge_is_deleted(EdgeId eid) const {
+    return !e_is_valid(eid);
+  }
+
+  [[nodiscard]] bool face_is_deleted(FaceId fid) const {
+    return !face_data(fid).halfedge.valid();
+  }
+
   FaceId new_face_by_halfedges(const std::span<const HalfedgeId> halfedges) {
     if (halfedges.empty()) {
       return FaceId{};
@@ -828,6 +844,13 @@ class ManifoldMesh {
     remove_edge(eid);
     remove_vertex(vb);
     return va;
+  }
+
+  void collapse_triangle_on_edge(HalfedgeId hc) {
+    auto removed_fid = he_face(hc);
+    auto keep_fid = he_face(he_twin(hc));
+    face_prop(removed_fid) = face_prop(keep_fid);
+    flip(hc);
   }
 
   HalfedgeId split_face(FaceId fid, VertexId va, VertexId vb) {
