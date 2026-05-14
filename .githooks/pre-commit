@@ -1,0 +1,19 @@
+#!/bin/sh
+set -eu
+
+if ! command -v clang-format >/dev/null 2>&1; then
+  echo "pre-commit: clang-format not found in PATH" >&2
+  exit 1
+fi
+
+tmpfile=$(mktemp)
+trap 'rm -f "$tmpfile"' EXIT HUP INT TERM
+
+git diff --cached --name-only -z --diff-filter=ACMR -- '*.hpp' '*.cpp' >"$tmpfile"
+
+if [ ! -s "$tmpfile" ]; then
+  exit 0
+fi
+
+xargs -0 clang-format -i <"$tmpfile"
+xargs -0 git add -- <"$tmpfile"
