@@ -6,7 +6,8 @@
 
 namespace gpf {
 
-inline constexpr std::size_t kInvalidIndex = std::numeric_limits<std::size_t>::max();
+inline constexpr std::size_t kInvalidIndex =
+    std::numeric_limits<std::size_t>::max();
 
 struct VertexId {
   std::size_t idx{kInvalidIndex};
@@ -44,7 +45,8 @@ struct EdgeId {
   constexpr auto operator<=>(const EdgeId&) const = default;
 };
 
-[[nodiscard]] constexpr HalfedgeId operator+(HalfedgeId id, std::size_t offset) {
+[[nodiscard]] constexpr HalfedgeId operator+(HalfedgeId id,
+                                             std::size_t offset) {
   return HalfedgeId{id.idx + offset};
 }
 
@@ -58,12 +60,16 @@ namespace std {
 
 template <>
 struct hash<gpf::VertexId> {
-  std::size_t operator()(const gpf::VertexId id) const noexcept { return id.idx; }
+  std::size_t operator()(const gpf::VertexId id) const noexcept {
+    return id.idx;
+  }
 };
 
 template <>
 struct hash<gpf::HalfedgeId> {
-  std::size_t operator()(const gpf::HalfedgeId id) const noexcept { return id.idx; }
+  std::size_t operator()(const gpf::HalfedgeId id) const noexcept {
+    return id.idx;
+  }
 };
 
 template <>

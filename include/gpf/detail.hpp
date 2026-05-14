@@ -12,7 +12,8 @@ struct Empty {
 
 namespace detail {
 
-[[nodiscard]] constexpr std::pair<VertexId, VertexId> ordered_pair(VertexId a, VertexId b) {
+[[nodiscard]] constexpr std::pair<VertexId, VertexId> ordered_pair(VertexId a,
+                                                                   VertexId b) {
   if (a.idx < b.idx) {
     return {a, b};
   }
@@ -50,7 +51,8 @@ decltype(auto) property_ref(const EdgeData& data) {
   }
 }
 template <class Mesh>
-[[nodiscard]] HalfedgeId he_from_vertices_impl(const Mesh& mesh, VertexId va, VertexId vb) {
+[[nodiscard]] HalfedgeId he_from_vertices_impl(const Mesh& mesh, VertexId va,
+                                               VertexId vb) {
   for (const auto he : mesh.vertex(va).outgoing_halfedges()) {
     if (mesh.he_to(he.id) == vb) {
       return he.id;

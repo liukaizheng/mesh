@@ -885,8 +885,10 @@ class SurfaceMesh {
         vertex_data(vc).halfedge = {};
       }
     }
-    vertex_data(va).halfedge = he_next(compact_cycle(hb, &HalfedgeData::incoming_next));
-    vertex_data(vb).halfedge = he_next(compact_cycle(hc, &HalfedgeData::incoming_next));
+    vertex_data(va).halfedge =
+        he_next(compact_cycle(hb, &HalfedgeData::incoming_next));
+    vertex_data(vb).halfedge =
+        he_next(compact_cycle(hc, &HalfedgeData::incoming_next));
     delete_edge(ec);
     delete_face(degenerate_fid);
   }

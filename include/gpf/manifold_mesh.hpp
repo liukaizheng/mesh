@@ -17,7 +17,8 @@
 
 namespace gpf {
 
-template <class VertexProp = Empty, class HalfedgeProp = Empty, class EdgeProp = Empty, class FaceProp = Empty>
+template <class VertexProp = Empty, class HalfedgeProp = Empty,
+          class EdgeProp = Empty, class FaceProp = Empty>
 class ManifoldMesh {
  public:
   struct VertexData {
@@ -62,9 +63,10 @@ class ManifoldMesh {
     return mesh;
   }
 
-  template <class OtherVertexProp, class OtherHalfedgeProp, class OtherEdgeProp, class OtherFaceProp>
-  void copy_from(
-      const ManifoldMesh<OtherVertexProp, OtherHalfedgeProp, OtherEdgeProp, OtherFaceProp>& other) {
+  template <class OtherVertexProp, class OtherHalfedgeProp, class OtherEdgeProp,
+            class OtherFaceProp>
+  void copy_from(const ManifoldMesh<OtherVertexProp, OtherHalfedgeProp,
+                                    OtherEdgeProp, OtherFaceProp>& other) {
     vertices_.resize(other.n_vertices_capacity());
     for (std::size_t i = 0; i < other.n_vertices_capacity(); ++i) {
       const auto& other_v = other.vertex_data(VertexId{i});
@@ -104,93 +106,152 @@ class ManifoldMesh {
   [[nodiscard]] std::size_t n_faces() const { return n_faces_; }
   [[nodiscard]] std::size_t n_edges() const { return n_halfedges_ >> 1; }
 
-  [[nodiscard]] std::size_t n_vertices_capacity() const { return vertices_.size(); }
-  [[nodiscard]] std::size_t n_halfedges_capacity() const { return halfedges_.size(); }
+  [[nodiscard]] std::size_t n_vertices_capacity() const {
+    return vertices_.size();
+  }
+  [[nodiscard]] std::size_t n_halfedges_capacity() const {
+    return halfedges_.size();
+  }
   [[nodiscard]] std::size_t n_faces_capacity() const { return faces_.size(); }
   [[nodiscard]] std::size_t n_edges_capacity() const { return edges_.size(); }
 
-  [[nodiscard]] const VertexData& vertex_data(VertexId vid) const { return vertices_[vid.idx]; }
-  [[nodiscard]] VertexData& vertex_data(VertexId vid) { return vertices_[vid.idx]; }
+  [[nodiscard]] const VertexData& vertex_data(VertexId vid) const {
+    return vertices_[vid.idx];
+  }
+  [[nodiscard]] VertexData& vertex_data(VertexId vid) {
+    return vertices_[vid.idx];
+  }
 
-  [[nodiscard]] const HalfedgeData& halfedge_data(HalfedgeId hid) const { return halfedges_[hid.idx]; }
-  [[nodiscard]] HalfedgeData& halfedge_data(HalfedgeId hid) { return halfedges_[hid.idx]; }
+  [[nodiscard]] const HalfedgeData& halfedge_data(HalfedgeId hid) const {
+    return halfedges_[hid.idx];
+  }
+  [[nodiscard]] HalfedgeData& halfedge_data(HalfedgeId hid) {
+    return halfedges_[hid.idx];
+  }
 
-  [[nodiscard]] const FaceData& face_data(FaceId fid) const { return faces_[fid.idx]; }
+  [[nodiscard]] const FaceData& face_data(FaceId fid) const {
+    return faces_[fid.idx];
+  }
   [[nodiscard]] FaceData& face_data(FaceId fid) { return faces_[fid.idx]; }
 
-  [[nodiscard]] const EdgeData& edge_data(EdgeId eid) const { return edges_[eid.idx]; }
+  [[nodiscard]] const EdgeData& edge_data(EdgeId eid) const {
+    return edges_[eid.idx];
+  }
   [[nodiscard]] EdgeData& edge_data(EdgeId eid) { return edges_[eid.idx]; }
 
-  [[nodiscard]] const VertexProp& vertex_prop(VertexId vid) const { return vertex_data(vid).property; }
-  [[nodiscard]] VertexProp& vertex_prop(VertexId vid) { return vertex_data(vid).property; }
+  [[nodiscard]] const VertexProp& vertex_prop(VertexId vid) const {
+    return vertex_data(vid).property;
+  }
+  [[nodiscard]] VertexProp& vertex_prop(VertexId vid) {
+    return vertex_data(vid).property;
+  }
 
-  [[nodiscard]] const HalfedgeProp& halfedge_prop(HalfedgeId hid) const { return halfedge_data(hid).property; }
-  [[nodiscard]] HalfedgeProp& halfedge_prop(HalfedgeId hid) { return halfedge_data(hid).property; }
+  [[nodiscard]] const HalfedgeProp& halfedge_prop(HalfedgeId hid) const {
+    return halfedge_data(hid).property;
+  }
+  [[nodiscard]] HalfedgeProp& halfedge_prop(HalfedgeId hid) {
+    return halfedge_data(hid).property;
+  }
 
-  [[nodiscard]] const FaceProp& face_prop(FaceId fid) const { return face_data(fid).property; }
-  [[nodiscard]] FaceProp& face_prop(FaceId fid) { return face_data(fid).property; }
+  [[nodiscard]] const FaceProp& face_prop(FaceId fid) const {
+    return face_data(fid).property;
+  }
+  [[nodiscard]] FaceProp& face_prop(FaceId fid) {
+    return face_data(fid).property;
+  }
 
-  [[nodiscard]] const EdgeProp& edge_prop(EdgeId eid) const { return edge_data(eid); }
+  [[nodiscard]] const EdgeProp& edge_prop(EdgeId eid) const {
+    return edge_data(eid);
+  }
   [[nodiscard]] EdgeProp& edge_prop(EdgeId eid) { return edge_data(eid); }
 
   [[nodiscard]] Vertex vertex(VertexId vid) { return Vertex{vid, this}; }
-  [[nodiscard]] ConstVertex vertex(VertexId vid) const { return ConstVertex{vid, this}; }
-  [[nodiscard]] Halfedge halfedge(HalfedgeId hid) { return Halfedge{hid, this}; }
-  [[nodiscard]] ConstHalfedge halfedge(HalfedgeId hid) const { return ConstHalfedge{hid, this}; }
+  [[nodiscard]] ConstVertex vertex(VertexId vid) const {
+    return ConstVertex{vid, this};
+  }
+  [[nodiscard]] Halfedge halfedge(HalfedgeId hid) {
+    return Halfedge{hid, this};
+  }
+  [[nodiscard]] ConstHalfedge halfedge(HalfedgeId hid) const {
+    return ConstHalfedge{hid, this};
+  }
   [[nodiscard]] Face face(FaceId fid) { return Face{fid, this}; }
-  [[nodiscard]] ConstFace face(FaceId fid) const { return ConstFace{fid, this}; }
+  [[nodiscard]] ConstFace face(FaceId fid) const {
+    return ConstFace{fid, this};
+  }
   [[nodiscard]] Edge edge(EdgeId eid) { return Edge{eid, this}; }
-  [[nodiscard]] ConstEdge edge(EdgeId eid) const { return ConstEdge{eid, this}; }
+  [[nodiscard]] ConstEdge edge(EdgeId eid) const {
+    return ConstEdge{eid, this};
+  }
 
   [[nodiscard]] auto vertices() {
     return std::views::iota(std::size_t{0}, vertices_.size()) |
-           std::views::filter([this](const std::size_t i) { return vertices_[i].valid(); }) |
-           std::views::transform([this](const std::size_t i) { return Vertex{VertexId{i}, this}; });
+           std::views::filter(
+               [this](const std::size_t i) { return vertices_[i].valid(); }) |
+           std::views::transform([this](const std::size_t i) {
+             return Vertex{VertexId{i}, this};
+           });
   }
 
   [[nodiscard]] auto vertices() const {
     return std::views::iota(std::size_t{0}, vertices_.size()) |
-           std::views::filter([this](const std::size_t i) { return vertices_[i].valid(); }) |
-           std::views::transform(
-               [this](const std::size_t i) { return ConstVertex{VertexId{i}, this}; });
+           std::views::filter(
+               [this](const std::size_t i) { return vertices_[i].valid(); }) |
+           std::views::transform([this](const std::size_t i) {
+             return ConstVertex{VertexId{i}, this};
+           });
   }
 
   [[nodiscard]] auto halfedges() {
     return std::views::iota(std::size_t{0}, halfedges_.size()) |
-           std::views::filter([this](const std::size_t i) { return halfedges_[i].valid(); }) |
-           std::views::transform(
-               [this](const std::size_t i) { return Halfedge{HalfedgeId{i}, this}; });
+           std::views::filter(
+               [this](const std::size_t i) { return halfedges_[i].valid(); }) |
+           std::views::transform([this](const std::size_t i) {
+             return Halfedge{HalfedgeId{i}, this};
+           });
   }
 
   [[nodiscard]] auto halfedges() const {
     return std::views::iota(std::size_t{0}, halfedges_.size()) |
-           std::views::filter([this](const std::size_t i) { return halfedges_[i].valid(); }) |
-           std::views::transform(
-               [this](const std::size_t i) { return ConstHalfedge{HalfedgeId{i}, this}; });
+           std::views::filter(
+               [this](const std::size_t i) { return halfedges_[i].valid(); }) |
+           std::views::transform([this](const std::size_t i) {
+             return ConstHalfedge{HalfedgeId{i}, this};
+           });
   }
 
   [[nodiscard]] auto faces() {
     return std::views::iota(std::size_t{0}, faces_.size()) |
-           std::views::filter([this](const std::size_t i) { return faces_[i].valid(); }) |
-           std::views::transform([this](const std::size_t i) { return Face{FaceId{i}, this}; });
+           std::views::filter(
+               [this](const std::size_t i) { return faces_[i].valid(); }) |
+           std::views::transform(
+               [this](const std::size_t i) { return Face{FaceId{i}, this}; });
   }
 
   [[nodiscard]] auto faces() const {
     return std::views::iota(std::size_t{0}, faces_.size()) |
-           std::views::filter([this](const std::size_t i) { return faces_[i].valid(); }) |
-           std::views::transform([this](const std::size_t i) { return ConstFace{FaceId{i}, this}; });
+           std::views::filter(
+               [this](const std::size_t i) { return faces_[i].valid(); }) |
+           std::views::transform([this](const std::size_t i) {
+             return ConstFace{FaceId{i}, this};
+           });
   }
 
   [[nodiscard]] auto edges() {
     return std::views::iota(std::size_t{0}, edges_.size()) |
-           std::views::filter([this](const std::size_t i) { return e_is_valid(EdgeId{i}); }) |
-           std::views::transform([this](const std::size_t i) { return Edge{EdgeId{i}, this}; });
+           std::views::filter(
+               [this](const std::size_t i) { return e_is_valid(EdgeId{i}); }) |
+           std::views::transform(
+               [this](const std::size_t i) { return Edge{EdgeId{i}, this}; });
   }
 
   [[nodiscard]] auto edges() const {
     return std::views::iota(std::size_t{0}, edges_.size()) |
-           std::views::filter([this](const std::size_t i) { return e_is_valid(EdgeId{i}); }) |
-           std::views::transform([this](const std::size_t i) { return ConstEdge{EdgeId{i}, this}; });
+           std::views::filter(
+               [this](const std::size_t i) { return e_is_valid(EdgeId{i}); }) |
+           std::views::transform([this](const std::size_t i) {
+             return ConstEdge{EdgeId{i}, this};
+           });
   }
 
   [[nodiscard]] bool v_is_boundary(VertexId vid) const {
@@ -199,25 +260,49 @@ class ManifoldMesh {
 
   [[nodiscard]] HalfedgeId he_twin(HalfedgeId hid) const { return hid ^ 1; }
 
-  [[nodiscard]] bool he_is_boundary(HalfedgeId hid) const { return !he_face(hid).valid(); }
+  [[nodiscard]] bool he_is_boundary(HalfedgeId hid) const {
+    return !he_face(hid).valid();
+  }
 
-  [[nodiscard]] HalfedgeId v_halfedge(VertexId vid) const { return vertex_data(vid).halfedge; }
+  [[nodiscard]] HalfedgeId v_halfedge(VertexId vid) const {
+    return vertex_data(vid).halfedge;
+  }
 
-  [[nodiscard]] VertexId he_from(HalfedgeId hid) const { return halfedges_[he_twin(hid).idx].vertex; }
-  [[nodiscard]] VertexId he_to(HalfedgeId hid) const { return halfedges_[hid.idx].vertex; }
+  [[nodiscard]] VertexId he_from(HalfedgeId hid) const {
+    return halfedges_[he_twin(hid).idx].vertex;
+  }
+  [[nodiscard]] VertexId he_to(HalfedgeId hid) const {
+    return halfedges_[hid.idx].vertex;
+  }
   [[nodiscard]] std::array<VertexId, 2> he_vertices(HalfedgeId hid) const {
     return {he_from(hid), he_to(hid)};
   }
 
-  [[nodiscard]] HalfedgeId he_prev(HalfedgeId hid) const { return halfedges_[hid.idx].prev; }
-  [[nodiscard]] HalfedgeId he_next(HalfedgeId hid) const { return halfedges_[hid.idx].next; }
-  [[nodiscard]] FaceId he_face(HalfedgeId hid) const { return halfedges_[hid.idx].face; }
-  [[nodiscard]] EdgeId he_edge(HalfedgeId hid) const { return EdgeId{hid.idx >> 1}; }
-  [[nodiscard]] HalfedgeId he_sibling(HalfedgeId hid) const { return he_twin(hid); }
-  [[nodiscard]] HalfedgeId he_incoming_next(HalfedgeId hid) const { return he_prev(he_twin(hid)); }
-  [[nodiscard]] bool he_canonical_dir(HalfedgeId hid) const { return detail::he_canonical_dir_impl(*this, hid); }
+  [[nodiscard]] HalfedgeId he_prev(HalfedgeId hid) const {
+    return halfedges_[hid.idx].prev;
+  }
+  [[nodiscard]] HalfedgeId he_next(HalfedgeId hid) const {
+    return halfedges_[hid.idx].next;
+  }
+  [[nodiscard]] FaceId he_face(HalfedgeId hid) const {
+    return halfedges_[hid.idx].face;
+  }
+  [[nodiscard]] EdgeId he_edge(HalfedgeId hid) const {
+    return EdgeId{hid.idx >> 1};
+  }
+  [[nodiscard]] HalfedgeId he_sibling(HalfedgeId hid) const {
+    return he_twin(hid);
+  }
+  [[nodiscard]] HalfedgeId he_incoming_next(HalfedgeId hid) const {
+    return he_prev(he_twin(hid));
+  }
+  [[nodiscard]] bool he_canonical_dir(HalfedgeId hid) const {
+    return detail::he_canonical_dir_impl(*this, hid);
+  }
 
-  [[nodiscard]] HalfedgeId e_halfedge(EdgeId eid) const { return HalfedgeId{eid.idx << 1}; }
+  [[nodiscard]] HalfedgeId e_halfedge(EdgeId eid) const {
+    return HalfedgeId{eid.idx << 1};
+  }
 
   [[nodiscard]] EdgeId e_from_vertices(VertexId va, VertexId vb) const {
     for (const auto e : vertex(va).edges()) {
@@ -255,7 +340,9 @@ class ManifoldMesh {
     return HalfedgeId{};
   }
 
-  [[nodiscard]] HalfedgeId f_halfedge(FaceId fid) const { return faces_[fid.idx].halfedge; }
+  [[nodiscard]] HalfedgeId f_halfedge(FaceId fid) const {
+    return faces_[fid.idx].halfedge;
+  }
 
   void connect_halfedges(HalfedgeId hid1, HalfedgeId hid2) {
     halfedges_[hid1.idx].next = hid2;
@@ -326,7 +413,8 @@ class ManifoldMesh {
 
     for (std::size_t i = 0; i < face_halfedges.size(); ++i) {
       const HalfedgeId curr_hid = face_halfedges[i];
-      const HalfedgeId next_hid = face_halfedges[(i + 1) % face_halfedges.size()];
+      const HalfedgeId next_hid =
+          face_halfedges[(i + 1) % face_halfedges.size()];
 
       halfedge_data(curr_hid).face = FaceId{};
 
@@ -386,7 +474,8 @@ class ManifoldMesh {
 
     for (std::size_t i = 0; i < halfedges.size(); ++i) {
       const HalfedgeId ha_twin = halfedges[halfedges.size() - 1 - i];
-      const HalfedgeId hb_twin = halfedges[halfedges.size() - 1 - ((i + 1) % halfedges.size())];
+      const HalfedgeId hb_twin =
+          halfedges[halfedges.size() - 1 - ((i + 1) % halfedges.size())];
       const HalfedgeId ha = he_twin(ha_twin);
       const HalfedgeId hb = he_twin(hb_twin);
 
@@ -436,18 +525,23 @@ class ManifoldMesh {
   }
 
   FaceId new_face_by_halfedges(std::initializer_list<HalfedgeId> halfedges) {
-    return new_face_by_halfedges(std::span<const HalfedgeId>{halfedges.begin(), halfedges.size()});
+    return new_face_by_halfedges(
+        std::span<const HalfedgeId>{halfedges.begin(), halfedges.size()});
   }
 
-  void split_face_into_triangles(const FaceId fid, std::span<const VertexId> triangles) noexcept {
+  void split_face_into_triangles(const FaceId fid,
+                                 std::span<const VertexId> triangles) noexcept {
     assert(triangles.size() % 3 == 0);
-    std::unordered_map<std::pair<gpf::VertexId, gpf::VertexId>, HalfedgeId, detail::PairHash> edge_map;
+    std::unordered_map<std::pair<gpf::VertexId, gpf::VertexId>, HalfedgeId,
+                       detail::PairHash>
+        edge_map;
     edge_map.reserve(std::ranges::distance(face(fid).halfedges()));
 
     for (const auto he : face(fid).halfedges()) {
       const VertexId va = he_from(he.id);
       const VertexId vb = he_to(he.id);
-      edge_map.emplace((va.idx < vb.idx) ? std::pair{va, vb} : std::pair{vb, va}, he.id);
+      edge_map.emplace(
+          (va.idx < vb.idx) ? std::pair{va, vb} : std::pair{vb, va}, he.id);
     }
 
     // Helper to get or create a halfedge from va to vb
@@ -484,7 +578,7 @@ class ManifoldMesh {
     const std::size_t n_triangles = triangles.size() / 3;
     std::array<HalfedgeId, 3> hes;
 
-    auto create_triangle = [this, fid, &hes] (const auto new_fid) {
+    auto create_triangle = [this, fid, &hes](const auto new_fid) {
       auto ha = hes[0];
       auto hb = hes[1];
       auto hc = hes[2];
@@ -526,7 +620,7 @@ class ManifoldMesh {
   }
 
   auto he_twin_next(HalfedgeId hid) const -> HalfedgeId {
-      return halfedge(hid).twin().next().id;
+    return halfedge(hid).twin().next().id;
   }
 
   auto he_to_to(HalfedgeId hid) const -> VertexId {
@@ -688,8 +782,10 @@ class ManifoldMesh {
       connect_halfedges(prev_hid, next_hid);
       if (fid.valid() && he_next(next_hid) == prev_hid) {
         const bool points_to_removed_vertex = he_to(curr_hid) == vb;
-        const HalfedgeId keep_hid = points_to_removed_vertex ? prev_hid : next_hid;
-        const HalfedgeId discard_hid = points_to_removed_vertex ? next_hid : prev_hid;
+        const HalfedgeId keep_hid =
+            points_to_removed_vertex ? prev_hid : next_hid;
+        const HalfedgeId discard_hid =
+            points_to_removed_vertex ? next_hid : prev_hid;
         const EdgeId discard_eid = he_edge(discard_hid);
 
         assert(discard_eid != eid);
@@ -800,7 +896,9 @@ class ManifoldMesh {
     }
   }
 
-  [[nodiscard]] bool he_is_valid(HalfedgeId hid) const { return halfedge_data(hid).vertex.valid(); }
+  [[nodiscard]] bool he_is_valid(HalfedgeId hid) const {
+    return halfedge_data(hid).vertex.valid();
+  }
 
   [[nodiscard]] bool e_is_valid(EdgeId eid) const {
     const std::size_t idx = eid.idx << 1;
@@ -808,12 +906,15 @@ class ManifoldMesh {
   }
 
   void recount_n_vertices() {
-    n_vertices_ = std::ranges::count_if(vertices_, [](const VertexData& v) { return v.valid(); });
+    n_vertices_ = std::ranges::count_if(
+        vertices_, [](const VertexData& v) { return v.valid(); });
   }
 
   template <class PolygonRange>
   void build(PolygonRange&& polygons) {
-    std::unordered_map<std::pair<std::size_t, std::size_t>, HalfedgeId, detail::PairHash> edge_map;
+    std::unordered_map<std::pair<std::size_t, std::size_t>, HalfedgeId,
+                       detail::PairHash>
+        edge_map;
 
     for (const auto& polygon : polygons) {
       std::vector<std::size_t> verts;

@@ -49,7 +49,8 @@ template <class Mesh, bool Const>
 class VertexHandle {
  public:
   using mesh_ptr = mesh_ptr_t<Mesh, Const>;
-  using data_ref = std::conditional_t<Const, const typename Mesh::VertexData&, typename Mesh::VertexData&>;
+  using data_ref = std::conditional_t<Const, const typename Mesh::VertexData&,
+                                      typename Mesh::VertexData&>;
 
   VertexId id{};
   mesh_ptr mesh{};
@@ -58,7 +59,10 @@ class VertexHandle {
   VertexHandle(VertexId id_, mesh_ptr mesh_) : id(id_), mesh(mesh_) {}
 
   [[nodiscard]] data_ref data() const { return mesh->vertex_data(id); }
-  [[nodiscard]] decltype(auto) prop() const { return (this->data().property); } // force it to deduce lvalue reference by enclosing the return statement in parentheses
+  [[nodiscard]] decltype(auto) prop() const {
+    return (this->data().property);
+  }  // force it to deduce lvalue reference by enclosing the return statement in
+     // parentheses
 
   [[nodiscard]] HalfedgeHandle<Mesh, Const> halfedge() const;
   [[nodiscard]] auto incoming_halfedges() const
@@ -73,7 +77,8 @@ template <class Mesh, bool Const>
 class FaceHandle {
  public:
   using mesh_ptr = mesh_ptr_t<Mesh, Const>;
-  using data_ref = std::conditional_t<Const, const typename Mesh::FaceData&, typename Mesh::FaceData&>;
+  using data_ref = std::conditional_t<Const, const typename Mesh::FaceData&,
+                                      typename Mesh::FaceData&>;
 
   FaceId id{};
   mesh_ptr mesh{};
@@ -86,16 +91,18 @@ class FaceHandle {
 
   [[nodiscard]] HalfedgeHandle<Mesh, Const> halfedge() const;
 
-  [[nodiscard]] auto halfedges() const -> HalfedgeCycleRange<Mesh, Const, &Mesh::he_next>;
-  [[nodiscard]] auto halfedges_reverse() const -> HalfedgeCycleRange<Mesh, Const, &Mesh::he_prev>;
+  [[nodiscard]] auto halfedges() const
+      -> HalfedgeCycleRange<Mesh, Const, &Mesh::he_next>;
+  [[nodiscard]] auto halfedges_reverse() const
+      -> HalfedgeCycleRange<Mesh, Const, &Mesh::he_prev>;
 };
 
 template <class Mesh, bool Const>
 class HalfedgeHandle {
  public:
   using mesh_ptr = mesh_ptr_t<Mesh, Const>;
-  using data_ref =
-      std::conditional_t<Const, const typename Mesh::HalfedgeData&, typename Mesh::HalfedgeData&>;
+  using data_ref = std::conditional_t<Const, const typename Mesh::HalfedgeData&,
+                                      typename Mesh::HalfedgeData&>;
 
   HalfedgeId id{};
   mesh_ptr mesh{};
@@ -122,7 +129,8 @@ template <class Mesh, bool Const>
 class EdgeHandle {
  public:
   using mesh_ptr = mesh_ptr_t<Mesh, Const>;
-  using data_ref = std::conditional_t<Const, const typename Mesh::EdgeData&, typename Mesh::EdgeData&>;
+  using data_ref = std::conditional_t<Const, const typename Mesh::EdgeData&,
+                                      typename Mesh::EdgeData&>;
 
   EdgeId id{};
   mesh_ptr mesh{};
@@ -134,7 +142,8 @@ class EdgeHandle {
   [[nodiscard]] decltype(auto) prop() const { return (mesh->edge_prop(id)); }
 
   [[nodiscard]] HalfedgeHandle<Mesh, Const> halfedge() const;
-  [[nodiscard]] auto halfedges() const -> HalfedgeCycleRange<Mesh, Const, &Mesh::he_sibling>;
+  [[nodiscard]] auto halfedges() const
+      -> HalfedgeCycleRange<Mesh, Const, &Mesh::he_sibling>;
   [[nodiscard]] std::array<VertexHandle<Mesh, Const>, 2> vertices() const;
 };
 
@@ -144,7 +153,8 @@ class HalfedgeCycleRange {
   using mesh_ptr = mesh_ptr_t<Mesh, Const>;
   using value_type = HalfedgeHandle<Mesh, Const>;
 
-  HalfedgeCycleRange(mesh_ptr mesh, HalfedgeId start) : mesh_(mesh), start_(start) {}
+  HalfedgeCycleRange(mesh_ptr mesh, HalfedgeId start)
+      : mesh_(mesh), start_(start) {}
 
   class iterator {
    public:
@@ -154,9 +164,15 @@ class HalfedgeCycleRange {
 
     iterator() = default;
     iterator(mesh_ptr mesh, HalfedgeId first, bool done)
-        : mesh_(mesh), first_(first), current_(first), first_step_(true), done_(done) {}
+        : mesh_(mesh),
+          first_(first),
+          current_(first),
+          first_step_(true),
+          done_(done) {}
 
-    [[nodiscard]] value_type operator*() const { return value_type{current_, mesh_}; }
+    [[nodiscard]] value_type operator*() const {
+      return value_type{current_, mesh_};
+    }
 
     iterator& operator++() {
       if (done_) {
@@ -173,7 +189,9 @@ class HalfedgeCycleRange {
 
     void operator++(int) { (void)operator++(); }
 
-    [[nodiscard]] bool operator==(std::default_sentinel_t) const { return done_; }
+    [[nodiscard]] bool operator==(std::default_sentinel_t) const {
+      return done_;
+    }
 
    private:
     mesh_ptr mesh_{};
@@ -203,7 +221,8 @@ class VertexNeighborEdgesRange {
   using mesh_ptr = mesh_ptr_t<Mesh, Const>;
   using value_type = EdgeHandle<Mesh, Const>;
 
-  VertexNeighborEdgesRange(mesh_ptr mesh, VertexId vid) : mesh_(mesh), vid_(vid) {}
+  VertexNeighborEdgesRange(mesh_ptr mesh, VertexId vid)
+      : mesh_(mesh), vid_(vid) {}
 
   class iterator {
    public:
@@ -241,10 +260,14 @@ class VertexNeighborEdgesRange {
 
     void operator++(int) { (void)operator++(); }
 
-    [[nodiscard]] bool operator==(std::default_sentinel_t) const { return done_; }
+    [[nodiscard]] bool operator==(std::default_sentinel_t) const {
+      return done_;
+    }
 
    private:
-    [[nodiscard]] bool valid() const { return first_ || visited_ || hid_ != first_hid_; }
+    [[nodiscard]] bool valid() const {
+      return first_ || visited_ || hid_ != first_hid_;
+    }
 
     void next_halfedge() {
       first_ = false;
@@ -346,10 +369,14 @@ class VertexNeighborsRange {
 
     void operator++(int) { (void)operator++(); }
 
-    [[nodiscard]] bool operator==(std::default_sentinel_t) const { return done_; }
+    [[nodiscard]] bool operator==(std::default_sentinel_t) const {
+      return done_;
+    }
 
    private:
-    [[nodiscard]] bool valid() const { return first_ || visited_ || hid_ != first_hid_; }
+    [[nodiscard]] bool valid() const {
+      return first_ || visited_ || hid_ != first_hid_;
+    }
 
     void next_halfedge() {
       first_ = false;
@@ -416,23 +443,27 @@ template <class Mesh, bool Const>
 auto VertexHandle<Mesh, Const>::incoming_halfedges() const
     -> HalfedgeCycleRange<Mesh, Const, &Mesh::he_incoming_next> {
   const HalfedgeId out_hid = data().halfedge;
-  const HalfedgeId start = out_hid.valid() ? mesh->he_prev(out_hid) : HalfedgeId{};
+  const HalfedgeId start =
+      out_hid.valid() ? mesh->he_prev(out_hid) : HalfedgeId{};
   return HalfedgeCycleRange<Mesh, Const, &Mesh::he_incoming_next>{mesh, start};
 }
 
 template <class Mesh, bool Const>
 auto VertexHandle<Mesh, Const>::outgoing_halfedges() const {
   return incoming_halfedges() |
-         std::views::transform([](const HalfedgeHandle<Mesh, Const> he) { return he.next(); });
+         std::views::transform(
+             [](const HalfedgeHandle<Mesh, Const> he) { return he.next(); });
 }
 
 template <class Mesh, bool Const>
-auto VertexHandle<Mesh, Const>::edges() const -> VertexNeighborEdgesRange<Mesh, Const> {
+auto VertexHandle<Mesh, Const>::edges() const
+    -> VertexNeighborEdgesRange<Mesh, Const> {
   return VertexNeighborEdgesRange<Mesh, Const>{mesh, id};
 }
 
 template <class Mesh, bool Const>
-auto VertexHandle<Mesh, Const>::vertices() const -> VertexNeighborsRange<Mesh, Const> {
+auto VertexHandle<Mesh, Const>::vertices() const
+    -> VertexNeighborsRange<Mesh, Const> {
   return VertexNeighborsRange<Mesh, Const>{mesh, id};
 }
 
@@ -442,7 +473,8 @@ HalfedgeHandle<Mesh, Const> FaceHandle<Mesh, Const>::halfedge() const {
 }
 
 template <class Mesh, bool Const>
-auto FaceHandle<Mesh, Const>::halfedges() const -> HalfedgeCycleRange<Mesh, Const, &Mesh::he_next> {
+auto FaceHandle<Mesh, Const>::halfedges() const
+    -> HalfedgeCycleRange<Mesh, Const, &Mesh::he_next> {
   return HalfedgeCycleRange<Mesh, Const, &Mesh::he_next>{mesh, data().halfedge};
 }
 
@@ -495,7 +527,8 @@ HalfedgeHandle<Mesh, Const> HalfedgeHandle<Mesh, Const>::incoming_next() const {
 template <class Mesh, bool Const>
 HalfedgeHandle<Mesh, Const> HalfedgeHandle<Mesh, Const>::twin() const {
   if constexpr (is_manifold_mesh_v<Mesh>) {
-    // For manifold meshes, each edge has exactly 2 halfedges, so twin == sibling
+    // For manifold meshes, each edge has exactly 2 halfedges, so twin ==
+    // sibling
     return sibling();
   } else {
     const VertexId to_vid = data().vertex;
@@ -517,12 +550,15 @@ HalfedgeHandle<Mesh, Const> EdgeHandle<Mesh, Const>::halfedge() const {
 }
 
 template <class Mesh, bool Const>
-auto EdgeHandle<Mesh, Const>::halfedges() const -> HalfedgeCycleRange<Mesh, Const, &Mesh::he_sibling> {
-  return HalfedgeCycleRange<Mesh, Const, &Mesh::he_sibling>{mesh, mesh->e_halfedge(id)};
+auto EdgeHandle<Mesh, Const>::halfedges() const
+    -> HalfedgeCycleRange<Mesh, Const, &Mesh::he_sibling> {
+  return HalfedgeCycleRange<Mesh, Const, &Mesh::he_sibling>{
+      mesh, mesh->e_halfedge(id)};
 }
 
 template <class Mesh, bool Const>
-std::array<VertexHandle<Mesh, Const>, 2> EdgeHandle<Mesh, Const>::vertices() const {
+std::array<VertexHandle<Mesh, Const>, 2> EdgeHandle<Mesh, Const>::vertices()
+    const {
   const HalfedgeHandle<Mesh, Const> he = halfedge();
   const HalfedgeHandle<Mesh, Const> prev = he.prev();
   return {prev.to(), he.to()};

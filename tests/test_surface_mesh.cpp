@@ -39,13 +39,16 @@ void test_surface_mesh_basic() {
 
   assert(mesh.n_vertices() == 7);
 
-  const auto incoming_0 = count_range(mesh.vertex(gpf::VertexId{0}).incoming_halfedges());
-  const auto incomming_halfedges = mesh.vertex(gpf::VertexId{0}).incoming_halfedges() |
-                                   std::views::transform([](const auto& h) { return h.id; }) |
-                                   std::ranges::to<std::vector>();
+  const auto incoming_0 =
+      count_range(mesh.vertex(gpf::VertexId{0}).incoming_halfedges());
+  const auto incomming_halfedges =
+      mesh.vertex(gpf::VertexId{0}).incoming_halfedges() |
+      std::views::transform([](const auto& h) { return h.id; }) |
+      std::ranges::to<std::vector>();
   assert(incoming_0 == 6);
 
-  const auto outgoing_0 = count_range(mesh.vertex(gpf::VertexId{0}).outgoing_halfedges());
+  const auto outgoing_0 =
+      count_range(mesh.vertex(gpf::VertexId{0}).outgoing_halfedges());
   assert(outgoing_0 == 6);
 
   const auto edges_0 = count_range(mesh.vertex(gpf::VertexId{0}).edges());
@@ -54,10 +57,12 @@ void test_surface_mesh_basic() {
   const auto verts_0 = count_range(mesh.vertex(gpf::VertexId{0}).vertices());
   assert(verts_0 == 6);
 
-  const auto incoming_6 = count_range(mesh.vertex(gpf::VertexId{6}).incoming_halfedges());
+  const auto incoming_6 =
+      count_range(mesh.vertex(gpf::VertexId{6}).incoming_halfedges());
   assert(incoming_6 == 2);
 
-  const auto outgoing_6 = count_range(mesh.vertex(gpf::VertexId{6}).outgoing_halfedges());
+  const auto outgoing_6 =
+      count_range(mesh.vertex(gpf::VertexId{6}).outgoing_halfedges());
   assert(outgoing_6 == 2);
 
   const auto edges_6 = count_range(mesh.vertex(gpf::VertexId{6}).edges());
@@ -66,13 +71,16 @@ void test_surface_mesh_basic() {
   const auto verts_6 = count_range(mesh.vertex(gpf::VertexId{6}).vertices());
   assert(verts_6 == 3);
 
-  const auto edge_halfedges = count_range(mesh.edge(gpf::EdgeId{0}).halfedges());
+  const auto edge_halfedges =
+      count_range(mesh.edge(gpf::EdgeId{0}).halfedges());
   assert(edge_halfedges == 2);
 
-  const auto face_halfedges = count_range(mesh.face(gpf::FaceId{0}).halfedges());
+  const auto face_halfedges =
+      count_range(mesh.face(gpf::FaceId{0}).halfedges());
   assert(face_halfedges == 3);
 
-  const auto face_halfedges_rev = count_range(mesh.face(gpf::FaceId{0}).halfedges_reverse());
+  const auto face_halfedges_rev =
+      count_range(mesh.face(gpf::FaceId{0}).halfedges_reverse());
   assert(face_halfedges_rev == 3);
 }
 
