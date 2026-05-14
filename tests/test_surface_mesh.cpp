@@ -1,8 +1,8 @@
 #include <cassert>
 #include <cstddef>
+#include <ranges>
 #include <unordered_set>
 #include <vector>
-#include <ranges>
 
 #include "gpf/ids.hpp"
 #include "gpf/surface_mesh.hpp"
@@ -74,6 +74,34 @@ void test_surface_mesh_basic() {
 
   const auto face_halfedges_rev = count_range(mesh.face(gpf::FaceId{0}).halfedges_reverse());
   assert(face_halfedges_rev == 3);
+}
+
+void test_surface_mesh_vertex_boundary() {
+  using Mesh = gpf::SurfaceMesh<Empty, Empty, Empty, Empty>;
+
+  {
+    const Mesh mesh = Mesh::new_in(std::vector<std::vector<std::size_t>>{
+        {0, 1, 2},
+    });
+
+    assert(mesh.v_is_boundary(gpf::VertexId{0}));
+    assert(mesh.v_is_boundary(gpf::VertexId{1}));
+    assert(mesh.v_is_boundary(gpf::VertexId{2}));
+  }
+
+  {
+    const Mesh mesh = Mesh::new_in(std::vector<std::vector<std::size_t>>{
+        {0, 1, 2},
+        {0, 2, 3},
+        {0, 3, 1},
+        {1, 3, 2},
+    });
+
+    assert(!mesh.v_is_boundary(gpf::VertexId{0}));
+    assert(!mesh.v_is_boundary(gpf::VertexId{1}));
+    assert(!mesh.v_is_boundary(gpf::VertexId{2}));
+    assert(!mesh.v_is_boundary(gpf::VertexId{3}));
+  }
 }
 
 void test_surface_mesh_split_edge_and_split_face() {
@@ -196,7 +224,8 @@ void test_surface_mesh_collapse_edge() {
   const auto eid = mesh.e_from_vertices(gpf::VertexId{0}, gpf::VertexId{1});
   assert(eid.valid());
 
-  const auto kept_vid = mesh.collapse_edge(eid);
+  const auto kept_vid =
+      mesh.collapse_edge(eid, gpf::VertexId{0}, gpf::VertexId{1});
   assert(kept_vid.valid());
 
   assert(mesh.n_vertices() == 4);
@@ -242,7 +271,8 @@ void test_surface_mesh_collapse_edge_nonmanifold() {
   const auto edge_n_halfedges = count_range(mesh.edge(eid).halfedges());
   assert(edge_n_halfedges == 5);
 
-  const auto kept_vid = mesh.collapse_edge(eid);
+  const auto kept_vid =
+      mesh.collapse_edge(eid, gpf::VertexId{0}, gpf::VertexId{1});
   assert(kept_vid.valid());
 
   assert(mesh.n_faces() == 1);

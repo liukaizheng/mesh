@@ -272,6 +272,15 @@ class SurfaceMesh {
     return vertex_data(vid).halfedge;
   }
 
+  [[nodiscard]] bool v_is_boundary(VertexId vid) const {
+    for (const auto he : vertex(vid).incoming_halfedges()) {
+      if (!he_twin(he.id).valid() || !he_twin(he_next(he.id)).valid()) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   [[nodiscard]] VertexId he_from(HalfedgeId hid) const {
     return halfedges_[halfedges_[hid.idx].prev.idx].vertex;
   }
@@ -730,6 +739,7 @@ class SurfaceMesh {
     delete_edge(eid);
     return va;
   }
+
   void collapse_triangle_on_edge(HalfedgeId hc) {
     auto ha = he_next(hc);
     auto hb = he_next(ha);

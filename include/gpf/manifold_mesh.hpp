@@ -1,6 +1,7 @@
 #pragma once
 
 #include <algorithm>
+#include <array>
 #include <cassert>
 #include <cstddef>
 #include <initializer_list>
@@ -640,6 +641,97 @@ class ManifoldMesh {
     connect_halfedges(new_hid, next_hid);
 
     return new_v;
+  }
+
+  VertexId collapse_edge(EdgeId eid, VertexId va, VertexId vb) {
+    assert(eid.valid());
+    assert(va.valid());
+    assert(vb.valid());
+
+    const HalfedgeId hid = e_halfedge(eid);
+    const HalfedgeId twin_hid = he_twin(hid);
+    assert(he_is_valid(hid));
+    assert(he_is_valid(twin_hid));
+    assert(((he_from(hid) == va && he_to(hid) == vb) ||
+            (he_from(hid) == vb && he_to(hid) == va)));
+
+    auto delete_face_record = [this](FaceId fid) {
+      if (fid.valid() && face_data(fid).halfedge.valid()) {
+        face_data(fid).halfedge = HalfedgeId{};
+        n_faces_ = (n_faces_ == 0) ? 0 : (n_faces_ - 1);
+      }
+    };
+
+    auto replace_halfedge = [this](HalfedgeId old_hid, HalfedgeId new_hid) {
+      const HalfedgeId prev_hid = he_prev(old_hid);
+      const HalfedgeId next_hid = he_next(old_hid);
+      const FaceId fid = he_face(old_hid);
+
+      connect_halfedges(prev_hid, new_hid);
+      connect_halfedges(new_hid, next_hid);
+      halfedge_data(new_hid).face = fid;
+      halfedge_prop(new_hid) = halfedge_prop(old_hid);
+
+      if (fid.valid() && f_halfedge(fid) == old_hid) {
+        face_data(fid).halfedge = new_hid;
+      }
+    };
+
+    const std::array<HalfedgeId, 2> collapsed_halfedges{hid, twin_hid};
+    gpf::HalfedgeId va_hid{};
+    for (const HalfedgeId curr_hid : collapsed_halfedges) {
+      const FaceId fid = he_face(curr_hid);
+      const HalfedgeId prev_hid = he_prev(curr_hid);
+      const HalfedgeId next_hid = he_next(curr_hid);
+      const auto vc = he_to(next_hid);
+
+      connect_halfedges(prev_hid, next_hid);
+      if (fid.valid() && he_next(next_hid) == prev_hid) {
+        const bool points_to_removed_vertex = he_to(curr_hid) == vb;
+        const HalfedgeId keep_hid = points_to_removed_vertex ? prev_hid : next_hid;
+        const HalfedgeId discard_hid = points_to_removed_vertex ? next_hid : prev_hid;
+        const EdgeId discard_eid = he_edge(discard_hid);
+
+        assert(discard_eid != eid);
+        auto discard_twin_hid = he_twin(discard_hid);
+        replace_halfedge(discard_twin_hid, keep_hid);
+        if (points_to_removed_vertex) {
+          if (vertex_data(vc).halfedge == discard_twin_hid) {
+            vertex_data(vc).halfedge = keep_hid;
+          }
+        } else {
+          if (vertex_data(vc).halfedge == discard_hid) {
+            vertex_data(vc).halfedge = he_twin(keep_hid);
+          }
+        }
+        remove_edge(discard_eid);
+        delete_face_record(fid);
+        if (!va_hid.valid()) {
+          if (points_to_removed_vertex) {
+            va_hid = he_next(keep_hid);
+          } else {
+            va_hid = keep_hid;
+          }
+        }
+      } else if (fid.valid()) {
+        face_data(fid).halfedge = next_hid;
+      }
+    }
+
+    if (he_edge(vertex_data(va).halfedge) == eid) {
+      assert(va_hid.valid());
+      vertex_data(va).halfedge = va_hid;
+    }
+
+    for (auto he : vertex(va).incoming_halfedges()) {
+      if (he.to().id != va) {
+        he.data().vertex = va;
+      }
+    }
+
+    remove_edge(eid);
+    remove_vertex(vb);
+    return va;
   }
 
   HalfedgeId split_face(FaceId fid, VertexId va, VertexId vb) {
