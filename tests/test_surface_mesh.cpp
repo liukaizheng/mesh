@@ -1,7 +1,10 @@
+#include <array>
 #include <cassert>
 #include <cstddef>
 #include <ranges>
+#include <type_traits>
 #include <unordered_set>
+#include <utility>
 #include <vector>
 
 #include "gpf/ids.hpp"
@@ -11,6 +14,10 @@ namespace {
 
 struct Empty {
   [[nodiscard]] constexpr bool operator==(const Empty&) const = default;
+};
+
+struct PointFaceProp {
+  std::array<double, 2> pt{};
 };
 
 template <class Range>
@@ -24,6 +31,33 @@ std::size_t count_range(Range&& range) {
 }
 
 }  // namespace
+
+void test_surface_mesh_prop_constness() {
+  using Mesh = gpf::SurfaceMesh<Empty, Empty, Empty, PointFaceProp>;
+
+  using MutableFaceProp =
+      decltype(std::declval<Mesh&>().face(gpf::FaceId{0}).prop());
+  using ConstFaceProp =
+      decltype(std::declval<const Mesh&>().face(gpf::FaceId{0}).prop());
+  using MutablePoint =
+      decltype((std::declval<Mesh&>().face(gpf::FaceId{0}).prop().pt));
+  using ConstPoint =
+      decltype((std::declval<const Mesh&>().face(gpf::FaceId{0}).prop().pt));
+
+  static_assert(std::is_same_v<MutableFaceProp, PointFaceProp&>);
+  static_assert(std::is_same_v<ConstFaceProp, const PointFaceProp&>);
+  static_assert(std::is_assignable_v<MutablePoint, std::array<double, 2>>);
+  static_assert(!std::is_assignable_v<ConstPoint, std::array<double, 2>>);
+
+  Mesh mesh = Mesh::new_in(std::vector<std::vector<std::size_t>>{{0, 1, 2}});
+  auto face = mesh.face(gpf::FaceId{0});
+  face.prop().pt = std::array<double, 2>{0.0, 0.0};
+  assert(face.prop().pt == (std::array<double, 2>{0.0, 0.0}));
+
+  const Mesh& const_mesh = mesh;
+  assert(const_mesh.face(gpf::FaceId{0}).prop().pt ==
+         (std::array<double, 2>{0.0, 0.0}));
+}
 
 void test_surface_mesh_basic() {
   using Mesh = gpf::SurfaceMesh<Empty, Empty, Empty, Empty>;

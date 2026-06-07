@@ -3,6 +3,8 @@
 #include <cstddef>
 #include <initializer_list>
 #include <ranges>
+#include <type_traits>
+#include <utility>
 #include <vector>
 
 #include "gpf/ids.hpp"
@@ -12,6 +14,10 @@ namespace {
 
 struct Empty {
   [[nodiscard]] constexpr bool operator==(const Empty&) const = default;
+};
+
+struct MarkerEdgeProp {
+  int marker{};
 };
 
 template <class Range>
@@ -25,6 +31,32 @@ std::size_t count_range(Range&& range) {
 }
 
 }  // namespace
+
+void test_manifold_mesh_prop_constness() {
+  using Mesh = gpf::ManifoldMesh<Empty, Empty, MarkerEdgeProp, Empty>;
+
+  using MutableEdgeProp =
+      decltype(std::declval<Mesh&>().edge(gpf::EdgeId{0}).prop());
+  using ConstEdgeProp =
+      decltype(std::declval<const Mesh&>().edge(gpf::EdgeId{0}).prop());
+  using MutableMarker =
+      decltype((std::declval<Mesh&>().edge(gpf::EdgeId{0}).prop().marker));
+  using ConstMarker = decltype((
+      std::declval<const Mesh&>().edge(gpf::EdgeId{0}).prop().marker));
+
+  static_assert(std::is_same_v<MutableEdgeProp, MarkerEdgeProp&>);
+  static_assert(std::is_same_v<ConstEdgeProp, const MarkerEdgeProp&>);
+  static_assert(std::is_assignable_v<MutableMarker, int>);
+  static_assert(!std::is_assignable_v<ConstMarker, int>);
+
+  Mesh mesh = Mesh::new_in(std::vector<std::vector<std::size_t>>{{0, 1, 2}});
+  auto edge = mesh.edge(gpf::EdgeId{0});
+  edge.prop().marker = 7;
+  assert(edge.prop().marker == 7);
+
+  const Mesh& const_mesh = mesh;
+  assert(const_mesh.edge(gpf::EdgeId{0}).prop().marker == 7);
+}
 
 void test_manifold_mesh_single_triangle_boundary_loop() {
   using Mesh = gpf::ManifoldMesh<Empty, Empty, Empty, Empty>;

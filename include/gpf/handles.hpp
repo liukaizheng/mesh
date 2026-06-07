@@ -6,6 +6,7 @@
 #include <iterator>
 #include <ranges>
 #include <type_traits>
+#include <utility>
 
 #include "gpf/ids.hpp"
 
@@ -51,6 +52,8 @@ class VertexHandle {
   using mesh_ptr = mesh_ptr_t<Mesh, Const>;
   using data_ref = std::conditional_t<Const, const typename Mesh::VertexData&,
                                       typename Mesh::VertexData&>;
+  using prop_ref =
+      decltype(std::declval<mesh_ptr>()->vertex_prop(std::declval<VertexId>()));
 
   VertexId id{};
   mesh_ptr mesh{};
@@ -59,10 +62,7 @@ class VertexHandle {
   VertexHandle(VertexId id_, mesh_ptr mesh_) : id(id_), mesh(mesh_) {}
 
   [[nodiscard]] data_ref data() const { return mesh->vertex_data(id); }
-  [[nodiscard]] decltype(auto) prop() const {
-    return (this->data().property);
-  }  // force it to deduce lvalue reference by enclosing the return statement in
-     // parentheses
+  [[nodiscard]] prop_ref prop() const { return mesh->vertex_prop(id); }
 
   [[nodiscard]] HalfedgeHandle<Mesh, Const> halfedge() const;
   [[nodiscard]] auto incoming_halfedges() const
@@ -79,6 +79,8 @@ class FaceHandle {
   using mesh_ptr = mesh_ptr_t<Mesh, Const>;
   using data_ref = std::conditional_t<Const, const typename Mesh::FaceData&,
                                       typename Mesh::FaceData&>;
+  using prop_ref =
+      decltype(std::declval<mesh_ptr>()->face_prop(std::declval<FaceId>()));
 
   FaceId id{};
   mesh_ptr mesh{};
@@ -87,7 +89,7 @@ class FaceHandle {
   FaceHandle(FaceId id_, mesh_ptr mesh_) : id(id_), mesh(mesh_) {}
 
   [[nodiscard]] data_ref data() const { return mesh->face_data(id); }
-  [[nodiscard]] decltype(auto) prop() const { return (this->data().property); }
+  [[nodiscard]] prop_ref prop() const { return mesh->face_prop(id); }
 
   [[nodiscard]] HalfedgeHandle<Mesh, Const> halfedge() const;
 
@@ -103,6 +105,8 @@ class HalfedgeHandle {
   using mesh_ptr = mesh_ptr_t<Mesh, Const>;
   using data_ref = std::conditional_t<Const, const typename Mesh::HalfedgeData&,
                                       typename Mesh::HalfedgeData&>;
+  using prop_ref = decltype(std::declval<mesh_ptr>()->halfedge_prop(
+      std::declval<HalfedgeId>()));
 
   HalfedgeId id{};
   mesh_ptr mesh{};
@@ -111,7 +115,7 @@ class HalfedgeHandle {
   HalfedgeHandle(HalfedgeId id_, mesh_ptr mesh_) : id(id_), mesh(mesh_) {}
 
   [[nodiscard]] data_ref data() const { return mesh->halfedge_data(id); }
-  [[nodiscard]] decltype(auto) prop() const { return (this->data().property); }
+  [[nodiscard]] prop_ref prop() const { return mesh->halfedge_prop(id); }
 
   [[nodiscard]] VertexHandle<Mesh, Const> from() const;
   [[nodiscard]] VertexHandle<Mesh, Const> to() const;
@@ -131,6 +135,8 @@ class EdgeHandle {
   using mesh_ptr = mesh_ptr_t<Mesh, Const>;
   using data_ref = std::conditional_t<Const, const typename Mesh::EdgeData&,
                                       typename Mesh::EdgeData&>;
+  using prop_ref =
+      decltype(std::declval<mesh_ptr>()->edge_prop(std::declval<EdgeId>()));
 
   EdgeId id{};
   mesh_ptr mesh{};
@@ -139,7 +145,7 @@ class EdgeHandle {
   EdgeHandle(EdgeId id_, mesh_ptr mesh_) : id(id_), mesh(mesh_) {}
 
   [[nodiscard]] data_ref data() const { return mesh->edge_data(id); }
-  [[nodiscard]] decltype(auto) prop() const { return (mesh->edge_prop(id)); }
+  [[nodiscard]] prop_ref prop() const { return mesh->edge_prop(id); }
 
   [[nodiscard]] HalfedgeHandle<Mesh, Const> halfedge() const;
   [[nodiscard]] auto halfedges() const
