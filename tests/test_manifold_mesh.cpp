@@ -30,6 +30,16 @@ std::size_t count_range(Range&& range) {
   return n;
 }
 
+template <class Mesh>
+void assert_vertex_halfedges_live(const Mesh& mesh) {
+  for (auto v : mesh.vertices()) {
+    const auto hid = mesh.v_halfedge(v.id);
+    assert(hid.valid());
+    assert(!mesh.halfedge_is_deleted(hid));
+    assert(mesh.he_from(hid) == v.id);
+  }
+}
+
 }  // namespace
 
 void test_manifold_mesh_prop_constness() {
@@ -199,6 +209,7 @@ void test_manifold_mesh_collapse_edge_boundary_fan() {
   assert(mesh.n_faces() == 2);
   assert(mesh.n_edges() == 5);
   assert(mesh.n_halfedges() == 10);
+  assert_vertex_halfedges_live(mesh);
 
   for (auto f : mesh.faces()) {
     std::size_t face_he_count = 0;

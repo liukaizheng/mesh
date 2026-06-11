@@ -796,37 +796,43 @@ class ManifoldMesh {
       const auto vc = he_to(next_hid);
 
       connect_halfedges(prev_hid, next_hid);
-      if (fid.valid() && he_next(next_hid) == prev_hid) {
-        const bool points_to_removed_vertex = he_to(curr_hid) == vb;
-        const HalfedgeId keep_hid =
-            points_to_removed_vertex ? prev_hid : next_hid;
-        const HalfedgeId discard_hid =
-            points_to_removed_vertex ? next_hid : prev_hid;
-        const EdgeId discard_eid = he_edge(discard_hid);
+      if (fid.valid()) {
+        // face is triangle
+        if (he_next(next_hid) == prev_hid) {
+          const bool points_to_removed_vertex = he_to(curr_hid) == vb;
+          const HalfedgeId keep_hid =
+              points_to_removed_vertex ? prev_hid : next_hid;
+          const HalfedgeId discard_hid =
+              points_to_removed_vertex ? next_hid : prev_hid;
+          const EdgeId discard_eid = he_edge(discard_hid);
 
-        assert(discard_eid != eid);
-        auto discard_twin_hid = he_twin(discard_hid);
-        replace_halfedge(discard_twin_hid, keep_hid);
-        if (points_to_removed_vertex) {
-          if (vertex_data(vc).halfedge == discard_twin_hid) {
-            vertex_data(vc).halfedge = keep_hid;
-          }
-        } else {
-          if (vertex_data(vc).halfedge == discard_hid) {
-            vertex_data(vc).halfedge = he_twin(keep_hid);
-          }
-        }
-        remove_edge(discard_eid);
-        delete_face_record(fid);
-        if (!va_hid.valid()) {
+          assert(discard_eid != eid);
+          auto discard_twin_hid = he_twin(discard_hid);
+          replace_halfedge(discard_twin_hid, keep_hid);
           if (points_to_removed_vertex) {
-            va_hid = he_next(keep_hid);
+            if (vertex_data(vc).halfedge == discard_twin_hid) {
+              vertex_data(vc).halfedge = keep_hid;
+            }
           } else {
-            va_hid = keep_hid;
+            if (vertex_data(vc).halfedge == discard_hid) {
+              vertex_data(vc).halfedge = he_twin(keep_hid);
+            }
           }
+          remove_edge(discard_eid);
+          delete_face_record(fid);
+          if (!va_hid.valid()) {
+            if (points_to_removed_vertex) {
+              va_hid = he_next(keep_hid);
+            } else {
+              va_hid = keep_hid;
+            }
+          }
+        } else if (face_data(fid).halfedge == curr_hid) {
+          face_data(fid).halfedge = next_hid;
         }
-      } else if (fid.valid()) {
-        face_data(fid).halfedge = next_hid;
+      } else {
+        // boundary
+        vertex_data(va).halfedge = next_hid;
       }
     }
 
