@@ -820,7 +820,11 @@ class ManifoldMesh {
           }
           remove_edge(discard_eid);
           delete_face_record(fid);
-          if (!va_hid.valid()) {
+          if (!va_hid.valid() || halfedge_is_deleted(va_hid)) {
+            // Q: Why check halfedge_is_deleted for va_hid?
+            // A: A candidate saved from the first adjacent triangle can be
+            // deleted while processing the second one, such as when `vb` has
+            // three incident faces. Keep a live halfedge for `va`.
             if (points_to_removed_vertex) {
               va_hid = he_next(keep_hid);
             } else {
